@@ -6,24 +6,38 @@
  * @license   MIT License, see license.txt
  */
 (function(){
-  var constants, lib, allocate;
+  var constants, lib, allocate, assert_no_error;
   constants = require('./constants');
   lib = require('../noise-c')();
-  allocate = lib.allocateBytes;
   module.exports = {
     ready: lib.then,
     constants: constants,
     CipherState: CipherState
   };
+  allocate = lib.allocateBytes;
+  assert_no_error = function(result, callback){
+    var key, ref$, value;
+    if (result === constants.NOISE_ERROR_NONE) {
+      return;
+    }
+    callback();
+    for (key in ref$ = constants) {
+      value = ref$[key];
+      if (value === result) {
+        throw "Error: " + key;
+      }
+    }
+  };
   /**
    * @param {string} cipher constants.NOISE_CIPHER_CHACHAPOLY, constants.NOISE_CIPHER_AESGCM, etc.
    */
   function CipherState(cipher){
-    var tmp;
+    var tmp, result;
     tmp = lib.allocatePointer();
-    if (lib._noise_cipherstate_new_by_id(tmp, cipher) !== constants.NOISE_ERROR_NONE) {
-      throw 'Error';
-    }
+    result = lib._noise_cipherstate_new_by_id(tmp, cipher);
+    assert_no_error(result, function(){
+      tmp.free();
+    });
     this._state = tmp.dereference();
     this._mac_length = lib._noise_cipherstate_get_mac_length(this._state);
     tmp.free();
@@ -33,11 +47,11 @@
      * @param {Uint8Array} key
      */
     InitializeKey: function(key){
+      var result;
       key = allocate(0, key);
-      if (lib._noise_cipherstate_init_key(this._state, key, key.length) !== constants.NOISE_ERROR_NONE) {
-        throw 'Error';
-      }
+      result = lib._noise_cipherstate_init_key(this._state, key, key.length);
       key.free();
+      assert_no_error(result);
     },
     HasKey: function(){
       return lib._noise_cipherstate_has_key(this._state) === 1;
@@ -50,16 +64,16 @@
      */,
     EncryptWithAd: function(ad, plaintext){
       var buffer, result, ciphertext;
+      ad = allocate(0, ad);
       buffer = allocate(lib._NoiseBuffer_struct_size());
       plaintext = allocate(plaintext.length + this._mac_length, plaintext);
       lib._NoiseBuffer_set_buffer_data(buffer, plaintext, plaintext.length - this._mac_length, plaintext.length);
       result = lib._noise_cipherstate_encrypt_with_ad(this._state, ad, ad.length, buffer);
       ciphertext = plaintext.get();
+      ad.free();
       buffer.free();
       plaintext.free();
-      if (result !== constants.NOISE_ERROR_NONE) {
-        throw 'Error';
-      }
+      assert_no_error(result);
       return ciphertext;
     }
     /**
@@ -70,25 +84,27 @@
      */,
     DecryptWithAd: function(ad, ciphertext){
       var buffer, result, plaintext;
+      ad = allocate(0, ad);
       buffer = allocate(lib._NoiseBuffer_struct_size());
       ciphertext = allocate(0, ciphertext);
       lib._NoiseBuffer_set_buffer_data(buffer, ciphertext, ciphertext.length, ciphertext.length);
       result = lib._noise_cipherstate_decrypt_with_ad(this._state, ad, ad.length, buffer);
       plaintext = ciphertext.get().slice(0, ciphertext.length - this._mac_length);
+      ad.free();
       buffer.free();
       ciphertext.free();
-      if (result !== constants.NOISE_ERROR_NONE) {
-        throw 'Error';
-      }
+      assert_no_error(result);
       return plaintext;
     },
     Rekey: function(){
       throw 'Not implemented';
     },
     free: function(){
-      lib._noise_cipherstate_free(this._state);
+      var result;
+      result = lib._noise_cipherstate_free(this._state);
       delete this._state;
       delete this._mac_length;
+      assert_no_error(result);
     }
   };
 }).call(this);
