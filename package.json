@@ -1,0 +1,51 @@
+{
+	"name"            : "noise-c.wasm",
+	"description"     : "rweather/noise-c compiled to WebAssembly using Emscripten and optimized for small size",
+	"keywords"        : [
+		"noise protocol",
+		"noise-c",
+		"authenticated encryption",
+		"aead",
+		"signature",
+		"webassembly"
+	],
+	"version"         : "0.0.1",
+	"homepage"        : "https://github.com/nazar-pc/noise-c.wasm",
+	"author"          : {
+		"name"  : "Nazar Mokrynskyi",
+		"email" : "nazar@mokrynskyi.com",
+		"url"   : "https://cleverstyle.org"
+	},
+	"repository"      : {
+		"type" : "git",
+		"url"  : "git://github.com/nazar-pc/noise-c.wasm.git"
+	},
+	"licenses"        : [
+		{
+			"type" : "MIT",
+			"url"  : "https://github.com/nazar-pc/noise-c.wasm/blob/master/license.txt"
+		}
+	],
+	"bugs"            : "https://github.com/nazar-pc/noise-c.wasm/issues",
+	"docs"            : "https://github.com/nazar-pc/noise-c.wasm",
+	"main"            : "src/index.js",
+	"files"           : [],
+	"scripts"         : {
+		"test"   : "tape test/**/*.js",
+		"vendor" : "git clone https://github.com/rweather/noise-c.git vendor",
+		"build"  : "gulp build"
+	},
+	"devDependencies" : {
+		"browserify"  : "^14.4.0",
+		"del"         : "^3.0.0",
+		"glob"        : "^7.1.2",
+		"gulp"        : "^3.9.1",
+		"gulp-rename" : "^1.2.2",
+		"gulp-tap"    : "^1.0.1",
+		"gulp-uglify" : "^3.0.0",
+		"tape"        : "^4.7.0"
+	},
+	"jspm"            : {
+		"main" : "dist/noise-c.wasm.browser.js"
+	}
+}
