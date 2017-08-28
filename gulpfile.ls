@@ -91,6 +91,17 @@ gulp
 #			'_noise_cipherstate_new_by_name'
 #			'_noise_cipherstate_set_nonce'
 
+			'_noise_symmetricstate_decrypt_and_hash'
+			'_noise_symmetricstate_encrypt_and_hash'
+			'_noise_symmetricstate_free'
+			'_noise_symmetricstate_get_mac_length'
+#			'_noise_symmetricstate_get_protocol_id'
+			'_noise_symmetricstate_mix_hash'
+			'_noise_symmetricstate_mix_key'
+#			'_noise_symmetricstate_new_by_id'
+			'_noise_symmetricstate_new_by_name'
+			'_noise_symmetricstate_split'
+
 			'_noise_handshakestate_fallback'
 			'_noise_handshakestate_fallback_to'
 			'_noise_handshakestate_free'
@@ -116,17 +127,6 @@ gulp
 			'_noise_handshakestate_split'
 			'_noise_handshakestate_start'
 			'_noise_handshakestate_write_message'
-
-			'_noise_symmetricstate_decrypt_and_hash'
-			'_noise_symmetricstate_encrypt_and_hash'
-			'_noise_symmetricstate_free'
-			'_noise_symmetricstate_get_mac_length'
-			'_noise_symmetricstate_get_protocol_id'
-			'_noise_symmetricstate_mix_hash'
-			'_noise_symmetricstate_mix_key'
-			'_noise_symmetricstate_new_by_id'
-			'_noise_symmetricstate_new_by_name'
-			'_noise_symmetricstate_split'
 
 			'_noise_hashstate_finalize'
 			'_noise_hashstate_free'
@@ -221,20 +221,8 @@ gulp
 #			'_noise_is_zero'
 #			'_noise_new_object'
 
-#			'_NoiseCipherState_struct_size'
-#			'_NoiseHandshakeState_struct_size'
-#			'_NoiseSymmetricState_struct_size'
-#			'_NoiseHashState_struct_size'
-#			'_NoiseDHState_struct_size'
-#			'_NoiseSignState_struct_size'
-#			'_NoiseRandState_struct_size'
-#			'_Noise_CertificateChain_struct_size'
-#			'_NoiseProtobuf_struct_size'
-#			'_Noise_Certificate_struct_size'
-#			'_Noise_PrivateKey_struct_size'
-			'_NoiseBuffer_struct_size'
-
-			'_NoiseBuffer_set_buffer_data'
+			'_NoiseBuffer_create'
+			'_SymmetricState_get_ck'
 		])
 		# Options that are only specified to optimize resulting file size and basically remove unused features
 		optimize	= "-O2 --closure 1 -s NO_EXIT_RUNTIME=1 -s NO_FILESYSTEM=1 -s EXPORTED_RUNTIME_METHODS=[] -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]"
