@@ -41,7 +41,7 @@ lib.ready !->
 
 			t.throws (!->
 				cs2.DecryptWithAd(new Uint8Array, ciphertext)
-			), /Error/, 'Subsequent decryption fails'
+			), Error, 'Subsequent decryption fails'
 			cs2.free()
 		)
 
@@ -77,14 +77,14 @@ lib.ready !->
 
 			t.throws (!->
 				cs2.DecryptWithAd(ad, ciphertext)
-			), /Error/, 'Subsequent decryption fails'
+			), Error, 'Subsequent decryption fails'
 			cs2.free()
 
 			cs3	= new lib.CipherState(lib.constants[cipher])
 			cs3.InitializeKey(key)
 			t.throws (!->
 				cs2.DecryptWithAd(randombytes(256), ciphertext)
-			), /Error/, 'Plaintext decryption with incorrect additional data fails'
+			), Error, 'Plaintext decryption with incorrect additional data fails'
 			cs3.free()
 		)
 

@@ -32,7 +32,7 @@
     for (key in ref$ = constants) {
       value = ref$[key];
       if (value === result) {
-        throw "Error: " + key;
+        throw new Error(key);
       }
     }
   };

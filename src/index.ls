@@ -21,7 +21,7 @@ assert_no_error	= (result) !->
 		return
 	for key, value of constants
 		if value == result
-			throw "Error: #key"
+			throw new Error(key)
 
 /**
  * @param {string} cipher constants.NOISE_CIPHER_CHACHAPOLY, constants.NOISE_CIPHER_AESGCM, etc.
