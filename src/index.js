@@ -133,7 +133,7 @@
    * @param {string} protocol_name The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
    */
   function SymmetricState(protocol_name){
-    var tmp, result, e;
+    var tmp, result, e, this$ = this;
     if (!(this instanceof SymmetricState)) {
       return new SymmetricState(protocol_name);
     }
@@ -148,7 +148,17 @@
       throw e;
     }
     this._state = tmp.dereference();
-    this._mac_length = lib._noise_symmetricstate_get_mac_length(this._state);
+    Object.defineProperty(this, '_mac_length', {
+      configurable: true,
+      get: function(){
+        var mac_length;
+        mac_length = lib._noise_symmetricstate_get_mac_length(this$._state);
+        if (mac_length > 0) {
+          this$._mac_length = mac_length;
+        }
+        return mac_length;
+      }
+    });
     tmp.free();
     protocol_name.free();
   }

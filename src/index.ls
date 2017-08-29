@@ -119,7 +119,15 @@ Object.defineProperty(CipherState_split::, 'constructor', {enumerable: false, va
 		tmp.free()
 		throw e
 	@_state			= tmp.dereference()
-	@_mac_length	= lib._noise_symmetricstate_get_mac_length(@_state)
+	# MAC length is 0 until key is is not set, so let's define getter and replace it with fixed property once we have non-zero MAC length
+	Object.defineProperty(@, '_mac_length', {
+		configurable	: true
+		get				: ~>
+			mac_length	= lib._noise_symmetricstate_get_mac_length(@_state)
+			if mac_length > 0
+				@_mac_length	= mac_length
+			mac_length
+	})
 	tmp.free()
 	protocol_name.free()
 
