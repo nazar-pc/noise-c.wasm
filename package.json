@@ -31,7 +31,7 @@
 	"main"            : "src/index.js",
 	"files"           : [],
 	"scripts"         : {
-		"test"   : "tape test/**/*.js",
+		"test"   : "tape tests/**/*.js",
 		"vendor" : "git clone https://github.com/rweather/noise-c.git vendor",
 		"build"  : "gulp build"
 	},
