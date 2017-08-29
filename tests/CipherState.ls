@@ -11,18 +11,22 @@ test		= require('tape')
 lib.ready !->
 	for cipher in ['NOISE_CIPHER_CHACHAPOLY', 'NOISE_CIPHER_AESGCM']
 		test("CipherState (#cipher): Encryption/decryption without additional data", (t) !->
-			t.plan(8)
-
 			key			= randombytes(32)
 			plaintext	= new Uint8Array(randombytes(10))
 
-			cs1	= new lib.CipherState(lib.constants[cipher])
+			var cs1
+			t.doesNotThrow (!->
+				cs1	:= new lib.CipherState(lib.constants[cipher])
+			), "Constructor doesn't throw an error"
 			t.equal(cs1.HasKey(), false, 'No key initially')
 
 			cs1.InitializeKey(key)
 			t.equal(cs1.HasKey(), true, 'Key was initialized')
 
-			ciphertext	= cs1.EncryptWithAd(new Uint8Array, plaintext)
+			var ciphertext
+			t.doesNotThrow (!->
+				ciphertext	:= cs1.EncryptWithAd(new Uint8Array, plaintext)
+			), "EncryptWithAd doesn't throw an error"
 			t.equal(ciphertext.length, plaintext.length + 16, 'ciphertext length is plaintext length + MAC')
 			t.notEqual(plaintext.toString(), ciphertext.slice(0, plaintext.length).toString(), 'Plaintext and ciphertext are different')
 
@@ -36,29 +40,38 @@ lib.ready !->
 
 			cs2	= new lib.CipherState(lib.constants[cipher])
 			cs2.InitializeKey(key)
-			plaintext_decrypted	= cs2.DecryptWithAd(new Uint8Array, ciphertext)
+			var plaintext_decrypted
+			t.doesNotThrow (!->
+				plaintext_decrypted	:= cs2.DecryptWithAd(new Uint8Array, ciphertext)
+			), "DecryptWithAd doesn't throw an error"
 			t.equal(plaintext.toString(), plaintext_decrypted.toString(), 'Plaintext decrypted correctly')
 
 			t.throws (!->
 				cs2.DecryptWithAd(new Uint8Array, ciphertext)
 			), Error, 'Subsequent decryption fails'
 			cs2.free()
+
+			t.end()
 		)
 
 		test("CipherState (#cipher): Encryption/decryption with additional data", (t) !->
-			t.plan(9)
-
 			key			= randombytes(32)
 			ad			= randombytes(256)
 			plaintext	= new Uint8Array(randombytes(10))
 
-			cs1	= new lib.CipherState(lib.constants[cipher])
+			var cs1
+			t.doesNotThrow (!->
+				cs1	:= new lib.CipherState(lib.constants[cipher])
+			), "Constructor doesn't throw an error"
 			t.equal(cs1.HasKey(), false, 'No key initially')
 
 			cs1.InitializeKey(key)
 			t.equal(cs1.HasKey(), true, 'Key was initialized')
 
-			ciphertext	= cs1.EncryptWithAd(ad, plaintext)
+			var ciphertext
+			t.doesNotThrow (!->
+				ciphertext	:= cs1.EncryptWithAd(ad, plaintext)
+			), "EncryptWithAd doesn't throw an error"
 			t.equal(ciphertext.length, plaintext.length + 16, 'ciphertext length is plaintext length + MAC')
 			t.notEqual(plaintext.toString(), ciphertext.slice(0, plaintext.length).toString(), 'Plaintext and ciphertext are different')
 
@@ -72,7 +85,10 @@ lib.ready !->
 
 			cs2	= new lib.CipherState(lib.constants[cipher])
 			cs2.InitializeKey(key)
-			plaintext_decrypted	= cs2.DecryptWithAd(ad, ciphertext)
+			var plaintext_decrypted
+			t.doesNotThrow (!->
+				plaintext_decrypted	:= cs2.DecryptWithAd(ad, ciphertext)
+			), "DecryptWithAd doesn't throw an error"
 			t.equal(plaintext.toString(), plaintext_decrypted.toString(), 'Plaintext decrypted correctly')
 
 			t.throws (!->
@@ -86,5 +102,7 @@ lib.ready !->
 				cs2.DecryptWithAd(randombytes(256), ciphertext)
 			), Error, 'Plaintext decryption with incorrect additional data fails'
 			cs3.free()
+
+			t.end()
 		)
 
