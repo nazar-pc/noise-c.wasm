@@ -13,8 +13,12 @@ plaintexts	= [new Uint8Array, new Uint8Array(randombytes(10))]
 ads			= [new Uint8Array, randombytes(256)]
 key			= randombytes(32)
 
+# Convenient for debugging common issues instead of looping through thousands of combinations
+#ciphers		= [ciphers[0]]
+#plaintexts	= [plaintexts[0]]
+
 <-! lib.ready
-for let cipher in ciphers then for let plaintext in plaintexts then for let ad in ads
+for let cipher in ciphers => for let plaintext in plaintexts => for let ad in ads
 	test("CipherState: #cipher, plaintext length #{plaintext.length}, ad length #{ad.length}", (t) !->
 		var cs1
 		t.doesNotThrow (!->

@@ -124,7 +124,7 @@
     this._state = state;
     this._mac_length = lib._noise_cipherstate_get_mac_length(this._state);
   }
-  CipherState_split.prototype = Object.create(CipherState);
+  CipherState_split.prototype = Object.create(CipherState.prototype);
   Object.defineProperty(CipherState_split.prototype, 'constructor', {
     enumerable: false,
     value: CipherState_split

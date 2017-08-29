@@ -101,7 +101,7 @@ CipherState:: =
 	@_state			= state
 	@_mac_length	= lib._noise_cipherstate_get_mac_length(@_state)
 
-CipherState_split:: = Object.create(CipherState)
+CipherState_split:: = Object.create(CipherState::)
 Object.defineProperty(CipherState_split::, 'constructor', {enumerable: false, value: CipherState_split})
 
 /**
