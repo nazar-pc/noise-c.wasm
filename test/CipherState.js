@@ -11,12 +11,18 @@
   lib = require('..');
   test = require('tape');
   lib.ready(function(){
-    test('CipherState: Encryption/decryption without additional data', function(t){
+    var i$, ref$, len$, cipher;
+    for (i$ = 0, len$ = (ref$ = ['NOISE_CIPHER_CHACHAPOLY', 'NOISE_CIPHER_AESGCM']).length; i$ < len$; ++i$) {
+      cipher = ref$[i$];
+      test("CipherState (" + cipher + "): Encryption/decryption without additional data", fn$);
+      test("CipherState (" + cipher + "): Encryption/decryption with additional data", fn1$);
+    }
+    function fn$(t){
       var key, plaintext, cs1, ciphertext, ciphertext2, cs2, plaintext_decrypted;
       t.plan(8);
       key = randombytes(32);
       plaintext = new Uint8Array(randombytes(10));
-      cs1 = new lib.CipherState(lib.constants.NOISE_CIPHER_CHACHAPOLY);
+      cs1 = new lib.CipherState(lib.constants[cipher]);
       t.equal(cs1.HasKey(), false, 'No key initially');
       cs1.InitializeKey(key);
       t.equal(cs1.HasKey(), true, 'Key was initialized');
@@ -29,7 +35,7 @@
       t.throws(function(){
         cs1.EncryptWithAd(new Uint8Array, plaintext);
       }, "CipherState shouldn't be usable after `.free()` is called");
-      cs2 = new lib.CipherState(lib.constants.NOISE_CIPHER_CHACHAPOLY);
+      cs2 = new lib.CipherState(lib.constants[cipher]);
       cs2.InitializeKey(key);
       plaintext_decrypted = cs2.DecryptWithAd(new Uint8Array, ciphertext);
       t.equal(plaintext.toString(), plaintext_decrypted.toString(), 'Plaintext decrypted correctly');
@@ -37,14 +43,14 @@
         cs2.DecryptWithAd(new Uint8Array, ciphertext);
       }, /Error/, 'Subsequent decryption fails');
       cs2.free();
-    });
-    test('CipherState: Encryption/decryption with additional data', function(t){
+    }
+    function fn1$(t){
       var key, ad, plaintext, cs1, ciphertext, ciphertext2, cs2, plaintext_decrypted, cs3;
       t.plan(9);
       key = randombytes(32);
       ad = randombytes(256);
       plaintext = new Uint8Array(randombytes(10));
-      cs1 = new lib.CipherState(lib.constants.NOISE_CIPHER_CHACHAPOLY);
+      cs1 = new lib.CipherState(lib.constants[cipher]);
       t.equal(cs1.HasKey(), false, 'No key initially');
       cs1.InitializeKey(key);
       t.equal(cs1.HasKey(), true, 'Key was initialized');
@@ -57,7 +63,7 @@
       t.throws(function(){
         cs1.EncryptWithAd(new Uint8Array, plaintext);
       }, "CipherState shouldn't be usable after `.free()` is called");
-      cs2 = new lib.CipherState(lib.constants.NOISE_CIPHER_CHACHAPOLY);
+      cs2 = new lib.CipherState(lib.constants[cipher]);
       cs2.InitializeKey(key);
       plaintext_decrypted = cs2.DecryptWithAd(ad, ciphertext);
       t.equal(plaintext.toString(), plaintext_decrypted.toString(), 'Plaintext decrypted correctly');
@@ -65,12 +71,12 @@
         cs2.DecryptWithAd(ad, ciphertext);
       }, /Error/, 'Subsequent decryption fails');
       cs2.free();
-      cs3 = new lib.CipherState(lib.constants.NOISE_CIPHER_CHACHAPOLY);
+      cs3 = new lib.CipherState(lib.constants[cipher]);
       cs3.InitializeKey(key);
       t.throws(function(){
         cs2.DecryptWithAd(randombytes(256), ciphertext);
       }, /Error/, 'Plaintext decryption with incorrect additional data fails');
       cs3.free();
-    });
+    }
   });
 }).call(this);
