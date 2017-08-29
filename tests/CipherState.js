@@ -15,16 +15,9 @@
   ads = [new Uint8Array, randombytes(256)];
   key = randombytes(32);
   lib.ready(function(){
-    var i$, ref$, len$, cipher, j$, ref1$, len1$, plaintext, k$, ref2$, len2$, ad;
+    var i$, ref$, len$;
     for (i$ = 0, len$ = (ref$ = ciphers).length; i$ < len$; ++i$) {
-      cipher = ref$[i$];
-      for (j$ = 0, len1$ = (ref1$ = plaintexts).length; j$ < len1$; ++j$) {
-        plaintext = ref1$[j$];
-        for (k$ = 0, len2$ = (ref2$ = ads).length; k$ < len2$; ++k$) {
-          ad = ref2$[k$];
-          test("CipherState: " + cipher + ", plaintext length " + plaintext.length + ", ad length " + ad.length, fn$);
-        }
-      }
+      (fn$.call(this, ref$[i$]));
     }
     test('CipherState: Check for encryption correctness', function(t){
       var cipher, ad, key, known_plaintext, known_ciphertext, cs1, ciphertext, cs2, plaintext;
@@ -45,48 +38,64 @@
       cs2.free();
       t.end();
     });
-    function fn$(t){
-      var cs1, ciphertext, ciphertext2, cs2, plaintext_decrypted, cs3, cs4;
-      t.doesNotThrow(function(){
-        cs1 = new lib.CipherState(lib.constants[cipher]);
-      }, "Constructor doesn't throw an error");
-      t.equal(cs1.HasKey(), false, 'No key initially');
-      cs1.InitializeKey(key);
-      t.equal(cs1.HasKey(), true, 'Key was initialized');
-      t.doesNotThrow(function(){
-        ciphertext = cs1.EncryptWithAd(ad, plaintext);
-      }, "EncryptWithAd() doesn't throw an error");
-      t.equal(ciphertext.length, plaintext.length + cs1._mac_length, 'ciphertext length is plaintext length + MAC');
-      t.notEqual(plaintext.toString(), ciphertext.slice(0, plaintext.length).toString(), 'Plaintext and ciphertext are different');
-      ciphertext2 = cs1.EncryptWithAd(ad, plaintext);
-      t.notEqual(ciphertext.toString(), ciphertext2.toString(), "Subsequent encryption doesn't have the same result");
-      cs1.free();
-      t.throws(function(){
-        cs1.EncryptWithAd(new Uint8Array, plaintext);
-      }, "CipherState shouldn't be usable after free() is called");
-      cs2 = new lib.CipherState(lib.constants[cipher]);
-      cs2.InitializeKey(key);
-      t.doesNotThrow(function(){
-        plaintext_decrypted = cs2.DecryptWithAd(ad, ciphertext);
-      }, "DecryptWithAd() doesn't throw an error");
-      t.equal(plaintext.toString(), plaintext_decrypted.toString(), 'Plaintext decrypted correctly');
-      t.throws(function(){
-        cs2.DecryptWithAd(ad, ciphertext);
-      }, Error, 'Subsequent decryption fails');
-      cs2.free();
-      cs3 = new lib.CipherState(lib.constants[cipher]);
-      cs3.InitializeKey(key);
-      t.throws(function(){
-        cs3.DecryptWithAd(randombytes(256), ciphertext);
-      }, Error, 'Plaintext decryption with incorrect additional data fails');
-      cs3.free();
-      cs4 = new lib.CipherState(lib.constants[cipher]);
-      cs4.InitializeKey(key);
-      t.throws(function(){
-        cs4.DecryptWithAd(ad, randombytes(256));
-      }, Error, 'Plaintext decryption with incorrect ciphertext fails');
-      cs4.free();
-      t.end();
+    function fn$(cipher){
+      var i$, ref$, len$;
+      for (i$ = 0, len$ = (ref$ = plaintexts).length; i$ < len$; ++i$) {
+        (fn$.call(this, ref$[i$]));
+      }
+      function fn$(plaintext){
+        var i$, ref$, len$;
+        for (i$ = 0, len$ = (ref$ = ads).length; i$ < len$; ++i$) {
+          (fn$.call(this, ref$[i$]));
+        }
+        function fn$(ad){
+          test("CipherState: " + cipher + ", plaintext length " + plaintext.length + ", ad length " + ad.length, function(t){
+            var cs1, ciphertext, ciphertext2, cs2, plaintext_decrypted, cs3, cs4;
+            t.doesNotThrow(function(){
+              cs1 = new lib.CipherState(lib.constants[cipher]);
+            }, "Constructor doesn't throw an error");
+            t.equal(cs1.HasKey(), false, 'No key initially');
+            cs1.InitializeKey(key);
+            t.equal(cs1.HasKey(), true, 'Key was initialized');
+            t.doesNotThrow(function(){
+              ciphertext = cs1.EncryptWithAd(ad, plaintext);
+            }, "EncryptWithAd() doesn't throw an error");
+            t.equal(ciphertext.length, plaintext.length + cs1._mac_length, 'ciphertext length is plaintext length + MAC');
+            if (plaintext.length) {
+              t.notEqual(plaintext.toString(), ciphertext.slice(0, plaintext.length).toString(), 'Plaintext and ciphertext are different');
+            }
+            ciphertext2 = cs1.EncryptWithAd(ad, plaintext);
+            t.notEqual(ciphertext.toString(), ciphertext2.toString(), "Subsequent encryption doesn't have the same result");
+            cs1.free();
+            t.throws(function(){
+              cs1.EncryptWithAd(new Uint8Array, plaintext);
+            }, "CipherState shouldn't be usable after free() is called");
+            cs2 = new lib.CipherState(lib.constants[cipher]);
+            cs2.InitializeKey(key);
+            t.doesNotThrow(function(){
+              plaintext_decrypted = cs2.DecryptWithAd(ad, ciphertext);
+            }, "DecryptWithAd() doesn't throw an error");
+            t.equal(plaintext.toString(), plaintext_decrypted.toString(), 'Plaintext decrypted correctly');
+            t.throws(function(){
+              cs2.DecryptWithAd(ad, ciphertext);
+            }, Error, 'Subsequent decryption fails');
+            cs2.free();
+            cs3 = new lib.CipherState(lib.constants[cipher]);
+            cs3.InitializeKey(key);
+            t.throws(function(){
+              cs3.DecryptWithAd(randombytes(256), ciphertext);
+            }, Error, 'Plaintext decryption with incorrect additional data fails');
+            cs3.free();
+            cs4 = new lib.CipherState(lib.constants[cipher]);
+            cs4.InitializeKey(key);
+            t.throws(function(){
+              cs4.DecryptWithAd(ad, randombytes(256));
+            }, Error, 'Plaintext decryption with incorrect ciphertext fails');
+            cs4.free();
+            t.end();
+          });
+        }
+      }
     }
   });
 }).call(this);

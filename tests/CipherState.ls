@@ -14,7 +14,7 @@ ads			= [new Uint8Array, randombytes(256)]
 key			= randombytes(32)
 
 <-! lib.ready
-for cipher in ciphers then for plaintext in plaintexts then for ad in ads
+for let cipher in ciphers then for let plaintext in plaintexts then for let ad in ads
 	test("CipherState: #cipher, plaintext length #{plaintext.length}, ad length #{ad.length}", (t) !->
 		var cs1
 		t.doesNotThrow (!->
@@ -30,7 +30,9 @@ for cipher in ciphers then for plaintext in plaintexts then for ad in ads
 			ciphertext	:= cs1.EncryptWithAd(ad, plaintext)
 		), "EncryptWithAd() doesn't throw an error"
 		t.equal(ciphertext.length, plaintext.length + cs1._mac_length, 'ciphertext length is plaintext length + MAC')
-		t.notEqual(plaintext.toString(), ciphertext.slice(0, plaintext.length).toString(), 'Plaintext and ciphertext are different')
+		# Empty plaintext will be, obviously, the same as empty ciphertext
+		if plaintext.length
+			t.notEqual(plaintext.toString(), ciphertext.slice(0, plaintext.length).toString(), 'Plaintext and ciphertext are different')
 
 		ciphertext2	= cs1.EncryptWithAd(ad, plaintext)
 		t.notEqual(ciphertext.toString(), ciphertext2.toString(), "Subsequent encryption doesn't have the same result")
