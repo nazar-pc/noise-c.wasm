@@ -4,16 +4,16 @@
  * @copyright Copyright (c) 2017, Nazar Mokrynskyi
  * @license   MIT License, see license.txt
  */
-crypto	= require('crypto')
-lib		= require('..')
-test	= require('tape')
+randombytes	= require('crypto').randomBytes
+lib			= require('..')
+test		= require('tape')
 
 lib.ready !->
 	test('CipherState: Encryption/decryption without additional data', (t) !->
 		t.plan(8)
 
-		key			= crypto.randomBytes(32)
-		plaintext	= new Uint8Array(crypto.randomBytes(10))
+		key			= randombytes(32)
+		plaintext	= new Uint8Array(randombytes(10))
 
 		cs1	= new lib.CipherState(lib.constants.NOISE_CIPHER_CHACHAPOLY)
 		t.equal(cs1.HasKey(), false, 'No key initially')
@@ -47,9 +47,9 @@ lib.ready !->
 	test('CipherState: Encryption/decryption with additional data', (t) !->
 		t.plan(9)
 
-		key			= crypto.randomBytes(32)
-		ad			= crypto.randomBytes(256)
-		plaintext	= new Uint8Array(crypto.randomBytes(10))
+		key			= randombytes(32)
+		ad			= randombytes(256)
+		plaintext	= new Uint8Array(randombytes(10))
 
 		cs1	= new lib.CipherState(lib.constants.NOISE_CIPHER_CHACHAPOLY)
 		t.equal(cs1.HasKey(), false, 'No key initially')
@@ -82,7 +82,7 @@ lib.ready !->
 		cs3	= new lib.CipherState(lib.constants.NOISE_CIPHER_CHACHAPOLY)
 		cs3.InitializeKey(key)
 		t.throws (!->
-			cs2.DecryptWithAd(crypto.randomBytes(256), ciphertext)
+			cs2.DecryptWithAd(randombytes(256), ciphertext)
 		), /Error/, 'Plaintext decryption with incorrect additional data fails'
 		cs3.free()
 	)

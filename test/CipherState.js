@@ -6,16 +6,16 @@
  * @license   MIT License, see license.txt
  */
 (function(){
-  var crypto, lib, test;
-  crypto = require('crypto');
+  var randombytes, lib, test;
+  randombytes = require('crypto').randomBytes;
   lib = require('..');
   test = require('tape');
   lib.ready(function(){
     test('CipherState: Encryption/decryption without additional data', function(t){
       var key, plaintext, cs1, ciphertext, ciphertext2, cs2, plaintext_decrypted;
       t.plan(8);
-      key = crypto.randomBytes(32);
-      plaintext = new Uint8Array(crypto.randomBytes(10));
+      key = randombytes(32);
+      plaintext = new Uint8Array(randombytes(10));
       cs1 = new lib.CipherState(lib.constants.NOISE_CIPHER_CHACHAPOLY);
       t.equal(cs1.HasKey(), false, 'No key initially');
       cs1.InitializeKey(key);
@@ -41,9 +41,9 @@
     test('CipherState: Encryption/decryption with additional data', function(t){
       var key, ad, plaintext, cs1, ciphertext, ciphertext2, cs2, plaintext_decrypted, cs3;
       t.plan(9);
-      key = crypto.randomBytes(32);
-      ad = crypto.randomBytes(256);
-      plaintext = new Uint8Array(crypto.randomBytes(10));
+      key = randombytes(32);
+      ad = randombytes(256);
+      plaintext = new Uint8Array(randombytes(10));
       cs1 = new lib.CipherState(lib.constants.NOISE_CIPHER_CHACHAPOLY);
       t.equal(cs1.HasKey(), false, 'No key initially');
       cs1.InitializeKey(key);
@@ -68,7 +68,7 @@
       cs3 = new lib.CipherState(lib.constants.NOISE_CIPHER_CHACHAPOLY);
       cs3.InitializeKey(key);
       t.throws(function(){
-        cs2.DecryptWithAd(crypto.randomBytes(256), ciphertext);
+        cs2.DecryptWithAd(randombytes(256), ciphertext);
       }, /Error/, 'Plaintext decryption with incorrect additional data fails');
       cs3.free();
     });

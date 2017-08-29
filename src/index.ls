@@ -6,7 +6,6 @@
  */
 constants	= require('./constants')
 lib			= require('../noise-c')()
-#randombytes	= require('./randombytes')
 
 module.exports = {ready: lib.then, constants, CipherState, SymmetricState}
 
@@ -58,7 +57,7 @@ CipherState:: =
 	 * @return {Uint8Array}
 	 */
 	EncryptWithAd	: (ad, plaintext) ->
-		ad					= allocate(0, ad)
+		ad			= allocate(0, ad)
 		# Encryption will happen in place, so we allocate a chunk of memory that will both hold encrypted data and appended MAC
 		plaintext	= allocate(plaintext.length + @_mac_length, plaintext)
 		buffer		= allocate_buffer(plaintext, plaintext.length - @_mac_length)
