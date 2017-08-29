@@ -7,7 +7,8 @@
     if (value && value.buffer instanceof ArrayBuffer) {
       value = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
     } else if (typeof value === 'string') {
-      var length = value.length, array = new Uint8Array(length);
+      // `+ 1` means that NUL will be present at the end of the string
+      var length = value.length, array = new Uint8Array(length + 1);
       for(var i = 0; i < length; ++i) {
         array[i] = value.charCodeAt(i);
       }

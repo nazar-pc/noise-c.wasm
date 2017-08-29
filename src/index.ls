@@ -111,7 +111,7 @@ Object.defineProperty(CipherState_split::, 'constructor', {enumerable: false, va
 	if !(@ instanceof SymmetricState)
 		return new SymmetricState(protocol_name)
 	tmp				= lib.allocatePointer()
-	protocol_name	= allocate(0, protocol_name + '\0')
+	protocol_name	= allocate(0, protocol_name)
 	result			= lib._noise_symmetricstate_new_by_name(tmp, protocol_name)
 	try
 		assert_no_error(result)
