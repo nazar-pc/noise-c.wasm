@@ -23,11 +23,12 @@ assert_no_error	= (result) !->
 		if value == result
 			throw "Error: #key"
 
-
 /**
  * @param {string} cipher constants.NOISE_CIPHER_CHACHAPOLY, constants.NOISE_CIPHER_AESGCM, etc.
  */
 !function CipherState (cipher)
+	if !(@ instanceof CipherState)
+		return new CipherState(cipher)
 	tmp		= lib.allocatePointer()
 	result	= lib._noise_cipherstate_new_by_id(tmp, cipher)
 	try
@@ -107,6 +108,8 @@ Object.defineProperty(CipherState_split::, 'constructor', {enumerable: false, va
  * @param {string} protocol_name The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
  */
 !function SymmetricState (protocol_name)
+	if !(@ instanceof SymmetricState)
+		return new SymmetricState(protocol_name)
 	tmp				= lib.allocatePointer()
 	protocol_name	= allocate(0, protocol_name + '\0')
 	result			= lib._noise_symmetricstate_new_by_name(tmp, protocol_name)

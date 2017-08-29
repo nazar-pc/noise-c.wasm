@@ -41,6 +41,9 @@
    */
   function CipherState(cipher){
     var tmp, result, e;
+    if (!(this instanceof CipherState)) {
+      return new CipherState(cipher);
+    }
     tmp = lib.allocatePointer();
     result = lib._noise_cipherstate_new_by_id(tmp, cipher);
     try {
@@ -131,6 +134,9 @@
    */
   function SymmetricState(protocol_name){
     var tmp, result, e;
+    if (!(this instanceof SymmetricState)) {
+      return new SymmetricState(protocol_name);
+    }
     tmp = lib.allocatePointer();
     protocol_name = allocate(0, protocol_name + '\0');
     result = lib._noise_symmetricstate_new_by_name(tmp, protocol_name);

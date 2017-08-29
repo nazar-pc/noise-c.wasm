@@ -6,6 +6,12 @@
   function normalizeValue (value) {
     if (value && value.buffer instanceof ArrayBuffer) {
       value = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+    } else if (typeof value === 'string') {
+      var length = value.length, array = new Uint8Array(length);
+      for(var i = 0; i < length; ++i) {
+        array[i] = value.charCodeAt(i);
+      }
+      return array;
     }
     return value;
   }
