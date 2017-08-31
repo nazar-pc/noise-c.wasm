@@ -17,11 +17,11 @@ allocate_buffer		= (data, size) ->
 	buffer	= tmp.dereference()
 	tmp.free()
 	buffer
-assert_no_error		= (result) !->
-	if result == constants.NOISE_ERROR_NONE
+assert_no_error		= (error) !->
+	if error == constants.NOISE_ERROR_NONE
 		return
-	for key, value of constants
-		if value == result
+	for key, code of constants
+		if code == error
 			throw new Error(key)
 
 /**
@@ -31,9 +31,9 @@ assert_no_error		= (result) !->
 	if !(@ instanceof CipherState)
 		return new CipherState(cipher)
 	tmp		= allocate_pointer()
-	result	= lib._noise_cipherstate_new_by_id(tmp, cipher)
+	error	= lib._noise_cipherstate_new_by_id(tmp, cipher)
 	try
-		assert_no_error(result)
+		assert_no_error(error)
 	catch e
 		tmp.free()
 		throw e
@@ -47,9 +47,9 @@ CipherState:: =
 	 */
 	InitializeKey	: (key) !->
 		key		= allocate(0, key)
-		result	= lib._noise_cipherstate_init_key(@_state, key, key.length)
+		error	= lib._noise_cipherstate_init_key(@_state, key, key.length)
 		key.free()
-		assert_no_error(result)
+		assert_no_error(error)
 	HasKey			: ->
 		lib._noise_cipherstate_has_key(@_state) == 1
 	/**
@@ -63,13 +63,13 @@ CipherState:: =
 		# Encryption will happen in place, so we allocate a chunk of memory that will both hold encrypted data and appended MAC
 		plaintext	= allocate(plaintext.length + @_mac_length, plaintext)
 		buffer		= allocate_buffer(plaintext, plaintext.length - @_mac_length)
-		result		= lib._noise_cipherstate_encrypt_with_ad(@_state, ad, ad.length, buffer)
+		error		= lib._noise_cipherstate_encrypt_with_ad(@_state, ad, ad.length, buffer)
 		# Encryption happened in place with MAC at the end
 		ciphertext	= plaintext.get()
 		ad.free()
 		plaintext.free()
 		buffer.free()
-		assert_no_error(result)
+		assert_no_error(error)
 		ciphertext
 	/**
 	 * @param {Uint8Array} ad
@@ -81,22 +81,22 @@ CipherState:: =
 		ad			= allocate(0, ad)
 		ciphertext	= allocate(0, ciphertext)
 		buffer		= allocate_buffer(ciphertext, ciphertext.length)
-		result		= lib._noise_cipherstate_decrypt_with_ad(@_state, ad, ad.length, buffer)
+		error		= lib._noise_cipherstate_decrypt_with_ad(@_state, ad, ad.length, buffer)
 		# Decryption happened in place, but we need to remove MAC from the end
 		plaintext	= ciphertext.get().slice(0, ciphertext.length - @_mac_length)
 		ad.free()
 		ciphertext.free()
 		buffer.free()
-		assert_no_error(result)
+		assert_no_error(error)
 		plaintext
 	Rekey			: !->
 		# TODO: noise_cipherstate_rekey() is not implemented yet (https://github.com/rweather/noise-c/issues/24)
 		throw 'Not implemented'
 	free			: !->
-		result	= lib._noise_cipherstate_free(@_state)
+		error	= lib._noise_cipherstate_free(@_state)
 		delete @_state
 		delete @_mac_length
-		assert_no_error(result)
+		assert_no_error(error)
 
 !function CipherState_split (state)
 	@_state			= state
@@ -113,9 +113,9 @@ Object.defineProperty(CipherState_split::, 'constructor', {enumerable: false, va
 		return new SymmetricState(protocol_name)
 	tmp				= allocate_pointer()
 	protocol_name	= allocate(0, protocol_name)
-	result			= lib._noise_symmetricstate_new_by_name(tmp, protocol_name)
+	error			= lib._noise_symmetricstate_new_by_name(tmp, protocol_name)
 	try
-		assert_no_error(result)
+		assert_no_error(error)
 	catch e
 		tmp.free()
 		throw e
@@ -138,17 +138,17 @@ SymmetricState:: =
 	 */
 	MixKey				: (input_key_material) !->
 		input_key_material	= allocate(0, input_key_material)
-		result				= lib._noise_symmetricstate_mix_key(@_state, input_key_material, input_key_material.length)
+		error				= lib._noise_symmetricstate_mix_key(@_state, input_key_material, input_key_material.length)
 		input_key_material.free()
-		assert_no_error(result)
+		assert_no_error(error)
 	/**
 	 * @param {Uint8Array} data
 	 */
 	MixHash				: (data) !->
 		data	= allocate(0, data)
-		result	= lib._noise_symmetricstate_mix_hash(@_state, data, data.length)
+		error	= lib._noise_symmetricstate_mix_hash(@_state, data, data.length)
 		data.free()
-		assert_no_error(result)
+		assert_no_error(error)
 	/**
 	 * @param {Uint8Array} input_key_material
 	 */
@@ -170,12 +170,12 @@ SymmetricState:: =
 		# Encryption will happen in place, so we allocate a chunk of memory that will both hold encrypted data and appended MAC
 		plaintext	= allocate(plaintext.length + @_mac_length, plaintext)
 		buffer		= allocate_buffer(plaintext, plaintext.length - @_mac_length)
-		result		= lib._noise_symmetricstate_encrypt_and_hash(@_state, buffer)
+		error		= lib._noise_symmetricstate_encrypt_and_hash(@_state, buffer)
 		# Encryption happened in place with MAC at the end
 		ciphertext	= plaintext.get()
 		plaintext.free()
 		buffer.free()
-		assert_no_error(result)
+		assert_no_error(error)
 		ciphertext
 	/**
 	 * @param {Uint8Array} ciphertext
@@ -185,12 +185,12 @@ SymmetricState:: =
 	DecryptAndHash		: (ciphertext) ->
 		ciphertext	= allocate(0, ciphertext)
 		buffer		= allocate_buffer(ciphertext, ciphertext.length)
-		result		= lib._noise_symmetricstate_decrypt_and_hash(@_state, buffer)
+		error		= lib._noise_symmetricstate_decrypt_and_hash(@_state, buffer)
 		# Decryption happened in place, but we need to remove MAC from the end
 		plaintext	= ciphertext.get().slice(0, ciphertext.length - @_mac_length)
 		ciphertext.free()
 		buffer.free()
-		assert_no_error(result)
+		assert_no_error(error)
 		plaintext
 	/**
 	 * @return {CipherState[]}
@@ -198,9 +198,9 @@ SymmetricState:: =
 	Split				: ->
 		tmp1	= allocate_pointer()
 		tmp2	= allocate_pointer()
-		result	= lib._noise_symmetricstate_split(@_state, tmp1, tmp2)
+		error	= lib._noise_symmetricstate_split(@_state, tmp1, tmp2)
 		try
-			assert_no_error(result)
+			assert_no_error(error)
 		catch e
 			tmp1.free()
 			tmp2.free()
@@ -219,10 +219,10 @@ SymmetricState:: =
 			throw e
 		[cs1, cs2]
 	free				: !->
-		result	= lib._noise_symmetricstate_free(@_state)
+		error	= lib._noise_symmetricstate_free(@_state)
 		delete @_state
 		delete @_mac_length
-		assert_no_error(result)
+		assert_no_error(error)
 
 /**
  * @param {string} protocol_name The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
@@ -238,9 +238,9 @@ SymmetricState:: =
 		return new HandshakeState(protocol_name, role, prologue, s, e, rs, re, psk)
 	tmp				= allocate_pointer()
 	protocol_name	= allocate(0, protocol_name)
-	result			= lib._noise_handshakestate_new_by_name(tmp, protocol_name, role)
+	error			= lib._noise_handshakestate_new_by_name(tmp, protocol_name, role)
 	try
-		assert_no_error(result)
+		assert_no_error(error)
 	catch e
 		tmp.free()
 		throw e
@@ -248,33 +248,33 @@ SymmetricState:: =
 	tmp.free()
 	protocol_name.free()
 	try
-		prologue		= allocate(0, prologue)
-		result			= lib._noise_handshakestate_set_prologue(@_state, prologue, prologue.length)
+		prologue	= allocate(0, prologue)
+		error		= lib._noise_handshakestate_set_prologue(@_state, prologue, prologue.length)
 		prologue.free()
-		assert_no_error(result)
+		assert_no_error(error)
 		if psk && lib._noise_handshakestate_needs_pre_shared_key(@_state) == 1
 			psk		= allocate(0, psk)
-			result	= lib._noise_handshakestate_set_pre_shared_key(@_state, psk, psk.length)
+			error	= lib._noise_handshakestate_set_pre_shared_key(@_state, psk, psk.length)
 			psk.free()
-			assert_no_error(result)
+			assert_no_error(error)
 		if lib._noise_handshakestate_needs_local_keypair(@_state) == 1
 			if !s
 				throw new Error('Local static private key (s) required, but not provided')
 			dh		= lib._noise_handshakestate_get_local_keypair_dh(@_state)
 			s		= allocate(0, s)
-			result	= lib._noise_dhstate_set_keypair_private(dh, s, s.length)
+			error	= lib._noise_dhstate_set_keypair_private(dh, s, s.length)
 			s.free()
-			assert_no_error(result)
+			assert_no_error(error)
 		if lib._noise_handshakestate_needs_remote_public_key(@_state) == 1
 			if !rs
 				throw new Error('Remote static private key (rs) required, but not provided')
 			dh		= lib._noise_handshakestate_get_remote_public_key_dh(@_state)
 			rs		= allocate(0, rs)
-			result	= lib._noise_dhstate_set_public_key(dh, rs, rs.length)
+			error	= lib._noise_dhstate_set_public_key(dh, rs, rs.length)
 			rs.free()
-			assert_no_error(result)
-		result	= lib._noise_handshakestate_start(@_state)
-		assert_no_error(result)
+			assert_no_error(error)
+		error	= lib._noise_handshakestate_start(@_state)
+		assert_no_error(error)
 	# TODO:
 	catch e
 		try

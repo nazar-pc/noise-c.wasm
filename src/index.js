@@ -26,14 +26,14 @@
     tmp.free();
     return buffer;
   };
-  assert_no_error = function(result){
-    var key, ref$, value;
-    if (result === constants.NOISE_ERROR_NONE) {
+  assert_no_error = function(error){
+    var key, ref$, code;
+    if (error === constants.NOISE_ERROR_NONE) {
       return;
     }
     for (key in ref$ = constants) {
-      value = ref$[key];
-      if (value === result) {
+      code = ref$[key];
+      if (code === error) {
         throw new Error(key);
       }
     }
@@ -42,14 +42,14 @@
    * @param {string} cipher constants.NOISE_CIPHER_CHACHAPOLY, constants.NOISE_CIPHER_AESGCM, etc.
    */
   function CipherState(cipher){
-    var tmp, result, e;
+    var tmp, error, e;
     if (!(this instanceof CipherState)) {
       return new CipherState(cipher);
     }
     tmp = allocate_pointer();
-    result = lib._noise_cipherstate_new_by_id(tmp, cipher);
+    error = lib._noise_cipherstate_new_by_id(tmp, cipher);
     try {
-      assert_no_error(result);
+      assert_no_error(error);
     } catch (e$) {
       e = e$;
       tmp.free();
@@ -64,11 +64,11 @@
      * @param {Uint8Array} key
      */
     InitializeKey: function(key){
-      var result;
+      var error;
       key = allocate(0, key);
-      result = lib._noise_cipherstate_init_key(this._state, key, key.length);
+      error = lib._noise_cipherstate_init_key(this._state, key, key.length);
       key.free();
-      assert_no_error(result);
+      assert_no_error(error);
     },
     HasKey: function(){
       return lib._noise_cipherstate_has_key(this._state) === 1;
@@ -80,16 +80,16 @@
      * @return {Uint8Array}
      */,
     EncryptWithAd: function(ad, plaintext){
-      var buffer, result, ciphertext;
+      var buffer, error, ciphertext;
       ad = allocate(0, ad);
       plaintext = allocate(plaintext.length + this._mac_length, plaintext);
       buffer = allocate_buffer(plaintext, plaintext.length - this._mac_length);
-      result = lib._noise_cipherstate_encrypt_with_ad(this._state, ad, ad.length, buffer);
+      error = lib._noise_cipherstate_encrypt_with_ad(this._state, ad, ad.length, buffer);
       ciphertext = plaintext.get();
       ad.free();
       plaintext.free();
       buffer.free();
-      assert_no_error(result);
+      assert_no_error(error);
       return ciphertext;
     }
     /**
@@ -99,27 +99,27 @@
      * @return {Uint8Array}
      */,
     DecryptWithAd: function(ad, ciphertext){
-      var buffer, result, plaintext;
+      var buffer, error, plaintext;
       ad = allocate(0, ad);
       ciphertext = allocate(0, ciphertext);
       buffer = allocate_buffer(ciphertext, ciphertext.length);
-      result = lib._noise_cipherstate_decrypt_with_ad(this._state, ad, ad.length, buffer);
+      error = lib._noise_cipherstate_decrypt_with_ad(this._state, ad, ad.length, buffer);
       plaintext = ciphertext.get().slice(0, ciphertext.length - this._mac_length);
       ad.free();
       ciphertext.free();
       buffer.free();
-      assert_no_error(result);
+      assert_no_error(error);
       return plaintext;
     },
     Rekey: function(){
       throw 'Not implemented';
     },
     free: function(){
-      var result;
-      result = lib._noise_cipherstate_free(this._state);
+      var error;
+      error = lib._noise_cipherstate_free(this._state);
       delete this._state;
       delete this._mac_length;
-      assert_no_error(result);
+      assert_no_error(error);
     }
   };
   function CipherState_split(state){
@@ -135,15 +135,15 @@
    * @param {string} protocol_name The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
    */
   function SymmetricState(protocol_name){
-    var tmp, result, e, this$ = this;
+    var tmp, error, e, this$ = this;
     if (!(this instanceof SymmetricState)) {
       return new SymmetricState(protocol_name);
     }
     tmp = allocate_pointer();
     protocol_name = allocate(0, protocol_name);
-    result = lib._noise_symmetricstate_new_by_name(tmp, protocol_name);
+    error = lib._noise_symmetricstate_new_by_name(tmp, protocol_name);
     try {
-      assert_no_error(result);
+      assert_no_error(error);
     } catch (e$) {
       e = e$;
       tmp.free();
@@ -169,21 +169,21 @@
      * @param {Uint8Array} input_key_material
      */
     MixKey: function(input_key_material){
-      var result;
+      var error;
       input_key_material = allocate(0, input_key_material);
-      result = lib._noise_symmetricstate_mix_key(this._state, input_key_material, input_key_material.length);
+      error = lib._noise_symmetricstate_mix_key(this._state, input_key_material, input_key_material.length);
       input_key_material.free();
-      assert_no_error(result);
+      assert_no_error(error);
     }
     /**
      * @param {Uint8Array} data
      */,
     MixHash: function(data){
-      var result;
+      var error;
       data = allocate(0, data);
-      result = lib._noise_symmetricstate_mix_hash(this._state, data, data.length);
+      error = lib._noise_symmetricstate_mix_hash(this._state, data, data.length);
       data.free();
-      assert_no_error(result);
+      assert_no_error(error);
     }
     /**
      * @param {Uint8Array} input_key_material
@@ -205,14 +205,14 @@
      * @return {Uint8Array}
      */,
     EncryptAndHash: function(plaintext){
-      var buffer, result, ciphertext;
+      var buffer, error, ciphertext;
       plaintext = allocate(plaintext.length + this._mac_length, plaintext);
       buffer = allocate_buffer(plaintext, plaintext.length - this._mac_length);
-      result = lib._noise_symmetricstate_encrypt_and_hash(this._state, buffer);
+      error = lib._noise_symmetricstate_encrypt_and_hash(this._state, buffer);
       ciphertext = plaintext.get();
       plaintext.free();
       buffer.free();
-      assert_no_error(result);
+      assert_no_error(error);
       return ciphertext;
     }
     /**
@@ -221,26 +221,26 @@
      * @return {Uint8Array}
      */,
     DecryptAndHash: function(ciphertext){
-      var buffer, result, plaintext;
+      var buffer, error, plaintext;
       ciphertext = allocate(0, ciphertext);
       buffer = allocate_buffer(ciphertext, ciphertext.length);
-      result = lib._noise_symmetricstate_decrypt_and_hash(this._state, buffer);
+      error = lib._noise_symmetricstate_decrypt_and_hash(this._state, buffer);
       plaintext = ciphertext.get().slice(0, ciphertext.length - this._mac_length);
       ciphertext.free();
       buffer.free();
-      assert_no_error(result);
+      assert_no_error(error);
       return plaintext;
     }
     /**
      * @return {CipherState[]}
      */,
     Split: function(){
-      var tmp1, tmp2, result, e, cs1, cs2;
+      var tmp1, tmp2, error, e, cs1, cs2;
       tmp1 = allocate_pointer();
       tmp2 = allocate_pointer();
-      result = lib._noise_symmetricstate_split(this._state, tmp1, tmp2);
+      error = lib._noise_symmetricstate_split(this._state, tmp1, tmp2);
       try {
-        assert_no_error(result);
+        assert_no_error(error);
       } catch (e$) {
         e = e$;
         tmp1.free();
@@ -266,11 +266,11 @@
       return [cs1, cs2];
     },
     free: function(){
-      var result;
-      result = lib._noise_symmetricstate_free(this._state);
+      var error;
+      error = lib._noise_symmetricstate_free(this._state);
       delete this._state;
       delete this._mac_length;
-      assert_no_error(result);
+      assert_no_error(error);
     }
   };
   /**
@@ -283,7 +283,7 @@
    * TODO: The rest of arguments
    */
   function HandshakeState(protocol_name, role, prologue, s, e, rs, re, psk){
-    var tmp, result, dh;
+    var tmp, error, dh;
     prologue == null && (prologue = new Uint8Array(0));
     s == null && (s = null);
     e == null && (e = null);
@@ -295,9 +295,9 @@
     }
     tmp = allocate_pointer();
     protocol_name = allocate(0, protocol_name);
-    result = lib._noise_handshakestate_new_by_name(tmp, protocol_name, role);
+    error = lib._noise_handshakestate_new_by_name(tmp, protocol_name, role);
     try {
-      assert_no_error(result);
+      assert_no_error(error);
     } catch (e$) {
       e = e$;
       tmp.free();
@@ -308,14 +308,14 @@
     protocol_name.free();
     try {
       prologue = allocate(0, prologue);
-      result = lib._noise_handshakestate_set_prologue(this._state, prologue, prologue.length);
+      error = lib._noise_handshakestate_set_prologue(this._state, prologue, prologue.length);
       prologue.free();
-      assert_no_error(result);
+      assert_no_error(error);
       if (psk && lib._noise_handshakestate_needs_pre_shared_key(this._state) === 1) {
         psk = allocate(0, psk);
-        result = lib._noise_handshakestate_set_pre_shared_key(this._state, psk, psk.length);
+        error = lib._noise_handshakestate_set_pre_shared_key(this._state, psk, psk.length);
         psk.free();
-        assert_no_error(result);
+        assert_no_error(error);
       }
       if (lib._noise_handshakestate_needs_local_keypair(this._state) === 1) {
         if (!s) {
@@ -323,9 +323,9 @@
         }
         dh = lib._noise_handshakestate_get_local_keypair_dh(this._state);
         s = allocate(0, s);
-        result = lib._noise_dhstate_set_keypair_private(dh, s, s.length);
+        error = lib._noise_dhstate_set_keypair_private(dh, s, s.length);
         s.free();
-        assert_no_error(result);
+        assert_no_error(error);
       }
       if (lib._noise_handshakestate_needs_remote_public_key(this._state) === 1) {
         if (!rs) {
@@ -333,12 +333,12 @@
         }
         dh = lib._noise_handshakestate_get_remote_public_key_dh(this._state);
         rs = allocate(0, rs);
-        result = lib._noise_dhstate_set_public_key(dh, rs, rs.length);
+        error = lib._noise_dhstate_set_public_key(dh, rs, rs.length);
         rs.free();
-        assert_no_error(result);
+        assert_no_error(error);
       }
-      result = lib._noise_handshakestate_start(this._state);
-      assert_no_error(result);
+      error = lib._noise_handshakestate_start(this._state);
+      assert_no_error(error);
     } catch (e$) {
       e = e$;
       try {
