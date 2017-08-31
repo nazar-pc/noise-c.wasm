@@ -97,7 +97,7 @@
                 ss1.free();
                 t.throws(function(){
                   ss1.EncryptAndHash(new Uint8Array, plaintext);
-                }, "SymmetricState() shouldn't be usable after .free() is called");
+                }, "SymmetricState() shouldn't be usable after free() is called");
                 ss2 = new lib.SymmetricState(protocol_name);
                 ss2.MixKey(random1);
                 ss2.MixHash(random2);
