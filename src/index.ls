@@ -7,16 +7,17 @@
 constants	= require('./constants')
 lib			= require('../noise-c')()
 
-module.exports = {ready: lib.then, constants, CipherState, SymmetricState}
+module.exports = {ready: lib.then, constants, CipherState, SymmetricState, HandshakeState}
 
-allocate		= lib.allocateBytes
-allocate_buffer	= (data, size) ->
-	tmp		= lib.allocatePointer()
+allocate			= lib.allocateBytes
+allocate_pointer	= lib.allocate_pointer
+allocate_buffer		= (data, size) ->
+	tmp		= allocate_pointer()
 	lib._NoiseBuffer_create(tmp, data, size, data.length)
 	buffer	= tmp.dereference()
 	tmp.free()
 	buffer
-assert_no_error	= (result) !->
+assert_no_error		= (result) !->
 	if result == constants.NOISE_ERROR_NONE
 		return
 	for key, value of constants
@@ -29,7 +30,7 @@ assert_no_error	= (result) !->
 !function CipherState (cipher)
 	if !(@ instanceof CipherState)
 		return new CipherState(cipher)
-	tmp		= lib.allocatePointer()
+	tmp		= allocate_pointer()
 	result	= lib._noise_cipherstate_new_by_id(tmp, cipher)
 	try
 		assert_no_error(result)
@@ -110,7 +111,7 @@ Object.defineProperty(CipherState_split::, 'constructor', {enumerable: false, va
 !function SymmetricState (protocol_name)
 	if !(@ instanceof SymmetricState)
 		return new SymmetricState(protocol_name)
-	tmp				= lib.allocatePointer()
+	tmp				= allocate_pointer()
 	protocol_name	= allocate(0, protocol_name)
 	result			= lib._noise_symmetricstate_new_by_name(tmp, protocol_name)
 	try
@@ -119,6 +120,8 @@ Object.defineProperty(CipherState_split::, 'constructor', {enumerable: false, va
 		tmp.free()
 		throw e
 	@_state			= tmp.dereference()
+	tmp.free()
+	protocol_name.free()
 	# MAC length is 0 until key is is not set, so let's define getter and replace it with fixed property once we have non-zero MAC length
 	Object.defineProperty(@, '_mac_length', {
 		configurable	: true
@@ -128,8 +131,6 @@ Object.defineProperty(CipherState_split::, 'constructor', {enumerable: false, va
 				@_mac_length	= mac_length
 			mac_length
 	})
-	tmp.free()
-	protocol_name.free()
 
 SymmetricState:: =
 	/**
@@ -153,7 +154,7 @@ SymmetricState:: =
 	 */
 	MixKeyAndHash		: (input_key_material) !->
 		@MixKey(input_key_material)
-		tmp		= lib.allocatePointer()
+		tmp		= allocate_pointer()
 		length	= lib._SymmetricState_get_ck(@_state, tmp)
 		ck		= tmp.dereference(length)
 		tmp.free()
@@ -195,17 +196,17 @@ SymmetricState:: =
 	 * @return {CipherState[]}
 	 */
 	Split				: ->
-		tmp1		= lib.allocatePointer()
-		tmp2		= lib.allocatePointer()
-		result		= lib._noise_symmetricstate_split(@_state, tmp1, tmp2)
+		tmp1	= allocate_pointer()
+		tmp2	= allocate_pointer()
+		result	= lib._noise_symmetricstate_split(@_state, tmp1, tmp2)
 		try
 			assert_no_error(result)
 		catch e
 			tmp1.free()
 			tmp2.free()
 			throw e
-		cs1	= new CipherState_split(tmp1.dereference())
-		cs2	= new CipherState_split(tmp2.dereference())
+		cs1		= new CipherState_split(tmp1.dereference())
+		cs2		= new CipherState_split(tmp2.dereference())
 		tmp1.free()
 		tmp2.free()
 		try
@@ -222,3 +223,65 @@ SymmetricState:: =
 		delete @_state
 		delete @_mac_length
 		assert_no_error(result)
+
+/**
+ * @param {string} protocol_name The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
+ * @param {number} initiator The role for the new object, either constants.NOISE_ROLE_INITIATOR or constants.NOISE_ROLE_RESPONDER
+ * @param {Uint8Array} prologue Prologue value
+ * @param {null|Uint8Array} s Local static private key
+ * @param {null|Uint8Array} rs Remote static private key
+ * @param {null|Uint8Array} psk Pre-shared symmetric key
+ * TODO: The rest of arguments
+ */
+!function HandshakeState (protocol_name, role, prologue = new Uint8Array(0), s = null, e = null, rs = null, re = null, psk = null)
+	if !(@ instanceof HandshakeState)
+		return new HandshakeState(protocol_name, role, prologue, s, e, rs, re, psk)
+	tmp				= allocate_pointer()
+	protocol_name	= allocate(0, protocol_name)
+	result			= lib._noise_handshakestate_new_by_name(tmp, protocol_name, role)
+	try
+		assert_no_error(result)
+	catch e
+		tmp.free()
+		throw e
+	@_state			= tmp.dereference()
+	tmp.free()
+	protocol_name.free()
+	try
+		prologue		= allocate(0, prologue)
+		result			= lib._noise_handshakestate_set_prologue(@_state, prologue, prologue.length)
+		prologue.free()
+		assert_no_error(result)
+		if psk && lib._noise_handshakestate_needs_pre_shared_key(@_state) == 1
+			psk		= allocate(0, psk)
+			result	= lib._noise_handshakestate_set_pre_shared_key(@_state, psk, psk.length)
+			psk.free()
+			assert_no_error(result)
+		if lib._noise_handshakestate_needs_local_keypair(@_state) == 1
+			if !s
+				throw new Error('Local static private key (s) required, but not provided')
+			dh		= lib._noise_handshakestate_get_local_keypair_dh(@_state)
+			s		= allocate(0, s)
+			result	= lib._noise_dhstate_set_keypair_private(dh, s, s.length)
+			s.free()
+			assert_no_error(result)
+		if lib._noise_handshakestate_needs_remote_public_key(@_state) == 1
+			if !rs
+				throw new Error('Remote static private key (rs) required, but not provided')
+			dh		= lib._noise_handshakestate_get_remote_public_key_dh(@_state)
+			rs		= allocate(0, rs)
+			result	= lib._noise_dhstate_set_public_key(dh, rs, rs.length)
+			rs.free()
+			assert_no_error(result)
+		result	= lib._noise_handshakestate_start(@_state)
+		assert_no_error(result)
+	# TODO:
+	catch e
+		try
+			@free()
+		throw e
+
+HandshakeState:: =
+	WriteMessage	: (payload, message_buffer) !->
+	ReadMessage		: (message, payload_buffer) !->
+	free			: !->

@@ -6,19 +6,21 @@
  * @license   MIT License, see license.txt
  */
 (function(){
-  var constants, lib, allocate, allocate_buffer, assert_no_error;
+  var constants, lib, allocate, allocate_pointer, allocate_buffer, assert_no_error;
   constants = require('./constants');
   lib = require('../noise-c')();
   module.exports = {
     ready: lib.then,
     constants: constants,
     CipherState: CipherState,
-    SymmetricState: SymmetricState
+    SymmetricState: SymmetricState,
+    HandshakeState: HandshakeState
   };
   allocate = lib.allocateBytes;
+  allocate_pointer = lib.allocate_pointer;
   allocate_buffer = function(data, size){
     var tmp, buffer;
-    tmp = lib.allocatePointer();
+    tmp = allocate_pointer();
     lib._NoiseBuffer_create(tmp, data, size, data.length);
     buffer = tmp.dereference();
     tmp.free();
@@ -44,7 +46,7 @@
     if (!(this instanceof CipherState)) {
       return new CipherState(cipher);
     }
-    tmp = lib.allocatePointer();
+    tmp = allocate_pointer();
     result = lib._noise_cipherstate_new_by_id(tmp, cipher);
     try {
       assert_no_error(result);
@@ -137,7 +139,7 @@
     if (!(this instanceof SymmetricState)) {
       return new SymmetricState(protocol_name);
     }
-    tmp = lib.allocatePointer();
+    tmp = allocate_pointer();
     protocol_name = allocate(0, protocol_name);
     result = lib._noise_symmetricstate_new_by_name(tmp, protocol_name);
     try {
@@ -148,6 +150,8 @@
       throw e;
     }
     this._state = tmp.dereference();
+    tmp.free();
+    protocol_name.free();
     Object.defineProperty(this, '_mac_length', {
       configurable: true,
       get: function(){
@@ -159,8 +163,6 @@
         return mac_length;
       }
     });
-    tmp.free();
-    protocol_name.free();
   }
   SymmetricState.prototype = {
     /**
@@ -189,7 +191,7 @@
     MixKeyAndHash: function(input_key_material){
       var tmp, length, ck, data;
       this.MixKey(input_key_material);
-      tmp = lib.allocatePointer();
+      tmp = allocate_pointer();
       length = lib._SymmetricState_get_ck(this._state, tmp);
       ck = tmp.dereference(length);
       tmp.free();
@@ -234,8 +236,8 @@
      */,
     Split: function(){
       var tmp1, tmp2, result, e, cs1, cs2;
-      tmp1 = lib.allocatePointer();
-      tmp2 = lib.allocatePointer();
+      tmp1 = allocate_pointer();
+      tmp2 = allocate_pointer();
       result = lib._noise_symmetricstate_split(this._state, tmp1, tmp2);
       try {
         assert_no_error(result);
@@ -270,5 +272,84 @@
       delete this._mac_length;
       assert_no_error(result);
     }
+  };
+  /**
+   * @param {string} protocol_name The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
+   * @param {number} initiator The role for the new object, either constants.NOISE_ROLE_INITIATOR or constants.NOISE_ROLE_RESPONDER
+   * @param {Uint8Array} prologue Prologue value
+   * @param {null|Uint8Array} s Local static private key
+   * @param {null|Uint8Array} rs Remote static private key
+   * @param {null|Uint8Array} psk Pre-shared symmetric key
+   * TODO: The rest of arguments
+   */
+  function HandshakeState(protocol_name, role, prologue, s, e, rs, re, psk){
+    var tmp, result, dh;
+    prologue == null && (prologue = new Uint8Array(0));
+    s == null && (s = null);
+    e == null && (e = null);
+    rs == null && (rs = null);
+    re == null && (re = null);
+    psk == null && (psk = null);
+    if (!(this instanceof HandshakeState)) {
+      return new HandshakeState(protocol_name, role, prologue, s, e, rs, re, psk);
+    }
+    tmp = allocate_pointer();
+    protocol_name = allocate(0, protocol_name);
+    result = lib._noise_handshakestate_new_by_name(tmp, protocol_name, role);
+    try {
+      assert_no_error(result);
+    } catch (e$) {
+      e = e$;
+      tmp.free();
+      throw e;
+    }
+    this._state = tmp.dereference();
+    tmp.free();
+    protocol_name.free();
+    try {
+      prologue = allocate(0, prologue);
+      result = lib._noise_handshakestate_set_prologue(this._state, prologue, prologue.length);
+      prologue.free();
+      assert_no_error(result);
+      if (psk && lib._noise_handshakestate_needs_pre_shared_key(this._state) === 1) {
+        psk = allocate(0, psk);
+        result = lib._noise_handshakestate_set_pre_shared_key(this._state, psk, psk.length);
+        psk.free();
+        assert_no_error(result);
+      }
+      if (lib._noise_handshakestate_needs_local_keypair(this._state) === 1) {
+        if (!s) {
+          throw new Error('Local static private key (s) required, but not provided');
+        }
+        dh = lib._noise_handshakestate_get_local_keypair_dh(this._state);
+        s = allocate(0, s);
+        result = lib._noise_dhstate_set_keypair_private(dh, s, s.length);
+        s.free();
+        assert_no_error(result);
+      }
+      if (lib._noise_handshakestate_needs_remote_public_key(this._state) === 1) {
+        if (!rs) {
+          throw new Error('Remote static private key (rs) required, but not provided');
+        }
+        dh = lib._noise_handshakestate_get_remote_public_key_dh(this._state);
+        rs = allocate(0, rs);
+        result = lib._noise_dhstate_set_public_key(dh, rs, rs.length);
+        rs.free();
+        assert_no_error(result);
+      }
+      result = lib._noise_handshakestate_start(this._state);
+      assert_no_error(result);
+    } catch (e$) {
+      e = e$;
+      try {
+        this.free();
+      } catch (e$) {}
+      throw e;
+    }
+  }
+  HandshakeState.prototype = {
+    WriteMessage: function(payload, message_buffer){},
+    ReadMessage: function(message, payload_buffer){},
+    free: function(){}
   };
 }).call(this);
