@@ -274,17 +274,17 @@
     }
   };
   /**
-   * @param {string} protocol_name The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
-   * @param {number} initiator The role for the new object, either constants.NOISE_ROLE_INITIATOR or constants.NOISE_ROLE_RESPONDER
-   * @param {Uint8Array} prologue Prologue value
-   * @param {null|Uint8Array} s Local static private key
-   * @param {null|Uint8Array} rs Remote static private key
-   * @param {null|Uint8Array} psk Pre-shared symmetric key
+   * @param {string}			protocol_name	The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
+   * @param {number}			initiator		The role for the new object, either constants.NOISE_ROLE_INITIATOR or constants.NOISE_ROLE_RESPONDER
+   * @param {null|Uint8Array}	prologue		Prologue value
+   * @param {null|Uint8Array}	s				Local static private key
+   * @param {null|Uint8Array}	rs				Remote static public key
+   * @param {null|Uint8Array}	psk				Pre-shared symmetric key
    * TODO: The rest of arguments
    */
   function HandshakeState(protocol_name, role, prologue, s, e, rs, re, psk){
     var tmp, error, dh;
-    prologue == null && (prologue = new Uint8Array(0));
+    prologue == null && (prologue = null);
     s == null && (s = null);
     e == null && (e = null);
     rs == null && (rs = null);
@@ -307,7 +307,7 @@
     tmp.free();
     protocol_name.free();
     try {
-      prologue = allocate(0, prologue);
+      prologue = allocate(0, prologue || undefined);
       error = lib._noise_handshakestate_set_prologue(this._state, prologue, prologue.length);
       prologue.free();
       assert_no_error(error);
@@ -348,8 +348,132 @@
     }
   }
   HandshakeState.prototype = {
-    WriteMessage: function(payload, message_buffer){},
-    ReadMessage: function(message, payload_buffer){},
-    free: function(){}
+    /**
+     * @return {number} One of constants.NOISE_ACTION_*
+     */
+    GetAction: function(){
+      var action;
+      action = lib._noise_handshakestate_get_action(this._state);
+      if (action === constants.NOISE_ACTION_FAILED) {
+        this.free();
+      }
+      return action;
+    }
+    /**
+     * @param {null|Uint8Array} payload null if no payload is required
+     *
+     * @return {Uint8Array} Message that should be sent to the other side
+     */,
+    WriteMessage: function(payload){
+      var message, message_buffer, payload_buffer, error, e, message_length, real_message;
+      payload == null && (payload = null);
+      message = allocate(constants.NOISE_MAX_PAYLOAD_LEN);
+      message_buffer = allocate_buffer(message_buffer, 0);
+      payload_buffer = null;
+      if (payload) {
+        payload = allocate(0, payload);
+        payload_buffer = allocate_buffer(payload, payload.length);
+      }
+      error = lib._noise_handshakestate_write_message(this._state, message_buffer, payload_buffer);
+      if (payload) {
+        payload.free();
+        payload_buffer.free();
+      }
+      try {
+        assert_no_error(error);
+      } catch (e$) {
+        e = e$;
+        message.free();
+        message_buffer.free();
+        try {
+          this.free();
+        } catch (e$) {}
+        throw e;
+      }
+      message_length = lib._NoiseBuffer_get_size(message);
+      real_message = message.get().slice(0, message_length);
+      message.free();
+      message_buffer.free();
+      return real_message;
+    }
+    /**
+     * @param {Uint8Array}	message			Message received from the other side
+     * @param {boolean}		payload_needed	false if the application does not need the message payload
+     *
+     * @return {null|Uint8Array}
+     */,
+    ReadMessage: function(message, payload_needed){
+      var message_buffer, payload_buffer, payload, error, e, real_payload, payload_length;
+      payload_needed == null && (payload_needed = false);
+      message = allocate(0, message);
+      message_buffer = allocate_buffer(message, message.length);
+      payload_buffer = null;
+      if (payload_needed) {
+        payload = allocate(constants.NOISE_MAX_PAYLOAD_LEN);
+        payload_buffer = allocate_buffer(payload_buffer);
+      }
+      error = lib._noise_handshakestate_read_message(this._state, message_buffer, payload_buffer);
+      message.free();
+      message_buffer.free();
+      try {
+        assert_no_error(error);
+      } catch (e$) {
+        e = e$;
+        payload.free();
+        payload_buffer.free();
+        try {
+          this.free();
+        } catch (e$) {}
+        throw e;
+      }
+      real_payload = null;
+      if (payload_needed) {
+        payload_length = lib._NoiseBuffer_get_size(payload);
+        real_payload = payload.get().slice(0, payload_length);
+        payload.free();
+        payload_buffer.free();
+      }
+      real_payload;
+    }
+    /**
+     * @return {CipherState[]} [send, receive]
+     */,
+    Split: function(){
+      var tmp1, tmp2, error, e, cs1, cs2;
+      tmp1 = allocate_pointer();
+      tmp2 = allocate_pointer();
+      error = lib._noise_handshakestate_split(this._state, tmp1, tmp2);
+      try {
+        assert_no_error(error);
+      } catch (e$) {
+        e = e$;
+        tmp1.free();
+        tmp2.free();
+        throw e;
+      }
+      cs1 = new CipherState_split(tmp1.dereference());
+      cs2 = new CipherState_split(tmp2.dereference());
+      tmp1.free();
+      tmp2.free();
+      try {
+        this.free();
+      } catch (e$) {
+        e = e$;
+        try {
+          cs1.free();
+        } catch (e$) {}
+        try {
+          cs2.free();
+        } catch (e$) {}
+        throw e;
+      }
+      return [cs1, cs2];
+    },
+    free: function(){
+      var error;
+      error = lib._noise_handshakestate_free(this._state);
+      delete this._state;
+      assert_no_error(error);
+    }
   };
 }).call(this);

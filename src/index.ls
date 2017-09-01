@@ -225,15 +225,15 @@ SymmetricState:: =
 		assert_no_error(error)
 
 /**
- * @param {string} protocol_name The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
- * @param {number} initiator The role for the new object, either constants.NOISE_ROLE_INITIATOR or constants.NOISE_ROLE_RESPONDER
- * @param {Uint8Array} prologue Prologue value
- * @param {null|Uint8Array} s Local static private key
- * @param {null|Uint8Array} rs Remote static private key
- * @param {null|Uint8Array} psk Pre-shared symmetric key
+ * @param {string}			protocol_name	The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
+ * @param {number}			initiator		The role for the new object, either constants.NOISE_ROLE_INITIATOR or constants.NOISE_ROLE_RESPONDER
+ * @param {null|Uint8Array}	prologue		Prologue value
+ * @param {null|Uint8Array}	s				Local static private key
+ * @param {null|Uint8Array}	rs				Remote static public key
+ * @param {null|Uint8Array}	psk				Pre-shared symmetric key
  * TODO: The rest of arguments
  */
-!function HandshakeState (protocol_name, role, prologue = new Uint8Array(0), s = null, e = null, rs = null, re = null, psk = null)
+!function HandshakeState (protocol_name, role, prologue = null, s = null, e = null, rs = null, re = null, psk = null)
 	if !(@ instanceof HandshakeState)
 		return new HandshakeState(protocol_name, role, prologue, s, e, rs, re, psk)
 	tmp				= allocate_pointer()
@@ -248,7 +248,7 @@ SymmetricState:: =
 	tmp.free()
 	protocol_name.free()
 	try
-		prologue	= allocate(0, prologue)
+		prologue	= allocate(0, prologue || undefined)
 		error		= lib._noise_handshakestate_set_prologue(@_state, prologue, prologue.length)
 		prologue.free()
 		assert_no_error(error)
@@ -275,13 +275,108 @@ SymmetricState:: =
 			assert_no_error(error)
 		error	= lib._noise_handshakestate_start(@_state)
 		assert_no_error(error)
-	# TODO:
 	catch e
 		try
 			@free()
 		throw e
 
 HandshakeState:: =
-	WriteMessage	: (payload, message_buffer) !->
-	ReadMessage		: (message, payload_buffer) !->
+	/**
+	 * @return {number} One of constants.NOISE_ACTION_*
+	 */
+	GetAction		: ->
+		action	= lib._noise_handshakestate_get_action(@_state)
+		if action == constants.NOISE_ACTION_FAILED
+			# TODO: fallback?
+			@free()
+		action
+	/**
+	 * @param {null|Uint8Array} payload null if no payload is required
+	 *
+	 * @return {Uint8Array} Message that should be sent to the other side
+	 */
+	WriteMessage	: (payload = null) ->
+		message			= allocate(constants.NOISE_MAX_PAYLOAD_LEN)
+		message_buffer	= allocate_buffer(message_buffer, 0)
+		payload_buffer	= null
+		if payload
+			payload			= allocate(0, payload)
+			payload_buffer	= allocate_buffer(payload, payload.length)
+		error			= lib._noise_handshakestate_write_message(@_state, message_buffer, payload_buffer)
+		if payload
+			payload.free()
+			payload_buffer.free()
+		try
+			assert_no_error(error)
+		catch e
+			message.free()
+			message_buffer.free()
+			try
+				@free()
+			throw e
+		message_length	= lib._NoiseBuffer_get_size(message)
+		real_message	= message.get().slice(0, message_length)
+		message.free()
+		message_buffer.free()
+		real_message
+	/**
+	 * @param {Uint8Array}	message			Message received from the other side
+	 * @param {boolean}		payload_needed	false if the application does not need the message payload
+	 *
+	 * @return {null|Uint8Array}
+	 */
+	ReadMessage		: (message, payload_needed = false) !->
+		message			= allocate(0, message)
+		message_buffer	= allocate_buffer(message, message.length)
+		payload_buffer	= null
+		if payload_needed
+			payload			= allocate(constants.NOISE_MAX_PAYLOAD_LEN)
+			payload_buffer	= allocate_buffer(payload_buffer)
+		error			= lib._noise_handshakestate_read_message(@_state, message_buffer, payload_buffer)
+		message.free()
+		message_buffer.free()
+		try
+			assert_no_error(error)
+		catch e
+			payload.free()
+			payload_buffer.free()
+			try
+				@free()
+			throw e
+		real_payload	= null
+		if payload_needed
+			payload_length	= lib._NoiseBuffer_get_size(payload)
+			real_payload	= payload.get().slice(0, payload_length)
+			payload.free()
+			payload_buffer.free()
+		real_payload
+	/**
+	 * @return {CipherState[]} [send, receive]
+	 */
+	Split				: ->
+		tmp1	= allocate_pointer()
+		tmp2	= allocate_pointer()
+		error	= lib._noise_handshakestate_split(@_state, tmp1, tmp2)
+		try
+			assert_no_error(error)
+		catch e
+			tmp1.free()
+			tmp2.free()
+			throw e
+		cs1		= new CipherState_split(tmp1.dereference())
+		cs2		= new CipherState_split(tmp2.dereference())
+		tmp1.free()
+		tmp2.free()
+		try
+			@free()
+		catch e
+			try
+				cs1.free()
+			try
+				cs2.free()
+			throw e
+		[cs1, cs2]
 	free			: !->
+		error	= lib._noise_handshakestate_free(@_state)
+		delete @_state
+		assert_no_error(error)
