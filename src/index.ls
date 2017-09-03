@@ -10,7 +10,7 @@ lib			= require('../noise-c')()
 module.exports = {ready: lib.then, constants, CipherState, SymmetricState, HandshakeState}
 
 allocate			= lib.allocateBytes
-allocate_pointer	= lib.allocate_pointer
+allocate_pointer	= lib.allocatePointer
 allocate_buffer		= (data, size) ->
 	tmp		= allocate_pointer()
 	lib._NoiseBuffer_create(tmp, data, size, data.length)

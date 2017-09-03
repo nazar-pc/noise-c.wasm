@@ -80,7 +80,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 		t.throws (!->
 			ss2.DecryptAndHash(ciphertext)
 		), Error, 'Subsequent decryption fails'
-		ss2.free()
+		# No need to call free(), since we've failed during last call
 
 		ss3	= new lib.SymmetricState(protocol_name)
 		ss3.MixKey(random1)

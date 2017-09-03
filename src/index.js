@@ -17,7 +17,7 @@
     HandshakeState: HandshakeState
   };
   allocate = lib.allocateBytes;
-  allocate_pointer = lib.allocate_pointer;
+  allocate_pointer = lib.allocatePointer;
   allocate_buffer = function(data, size){
     var tmp, buffer;
     tmp = allocate_pointer();

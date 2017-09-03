@@ -109,7 +109,6 @@
                 t.throws(function(){
                   ss2.DecryptAndHash(ciphertext);
                 }, Error, 'Subsequent decryption fails');
-                ss2.free();
                 ss3 = new lib.SymmetricState(protocol_name);
                 ss3.MixKey(random1);
                 ss3.MixHash(random2);
