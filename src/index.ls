@@ -17,14 +17,22 @@ allocate_buffer		= (data, size) ->
 	buffer	= tmp.dereference()
 	tmp.free()
 	buffer
-assert_no_error		= (error) !->
+assert_no_error		= (error, object_to_free) !->
 	if error == constants.NOISE_ERROR_NONE
 		return
 	for key, code of constants
 		if code == error
+			if object_to_free
+				try
+					object_to_free.free()
 			throw new Error(key)
 
 /**
+ * The CipherState object, API is close to the spec: http://noiseprotocol.org/noise.html#the-cipherstate-object
+ *
+ * NOTE: If you ever get an exception with Error object, whose message is one of constants.NOISE_ERROR_* keys, object is no longer usable and there is no need
+ * to call free() method, as it was called for you automatically already
+ *
  * @param {string} cipher constants.NOISE_CIPHER_CHACHAPOLY, constants.NOISE_CIPHER_AESGCM, etc.
  */
 !function CipherState (cipher)
@@ -32,11 +40,7 @@ assert_no_error		= (error) !->
 		return new CipherState(cipher)
 	tmp		= allocate_pointer()
 	error	= lib._noise_cipherstate_new_by_id(tmp, cipher)
-	try
-		assert_no_error(error)
-	catch e
-		tmp.free()
-		throw e
+	assert_no_error(error, tmp)
 	@_state			= tmp.dereference()
 	@_mac_length	= lib._noise_cipherstate_get_mac_length(@_state)
 	tmp.free()
@@ -49,7 +53,7 @@ CipherState:: =
 		key		= allocate(0, key)
 		error	= lib._noise_cipherstate_init_key(@_state, key, key.length)
 		key.free()
-		assert_no_error(error)
+		assert_no_error(error, @)
 	HasKey			: ->
 		lib._noise_cipherstate_has_key(@_state) == 1
 	/**
@@ -69,7 +73,7 @@ CipherState:: =
 		ad.free()
 		plaintext.free()
 		buffer.free()
-		assert_no_error(error)
+		assert_no_error(error, @)
 		ciphertext
 	/**
 	 * @param {Uint8Array} ad
@@ -87,11 +91,14 @@ CipherState:: =
 		ad.free()
 		ciphertext.free()
 		buffer.free()
-		assert_no_error(error)
+		assert_no_error(error, @)
 		plaintext
 	Rekey			: !->
 		# TODO: noise_cipherstate_rekey() is not implemented yet (https://github.com/rweather/noise-c/issues/24)
 		throw 'Not implemented'
+	/**
+	 * Call this when object is not needed anymore to avoid memory leaks
+	 */
 	free			: !->
 		error	= lib._noise_cipherstate_free(@_state)
 		delete @_state
@@ -106,6 +113,11 @@ CipherState_split:: = Object.create(CipherState::)
 Object.defineProperty(CipherState_split::, 'constructor', {enumerable: false, value: CipherState_split})
 
 /**
+ * The SymmetricState object, API is close to the spec: http://noiseprotocol.org/noise.html#the-symmetricstate-object
+ *
+ * NOTE: If you ever get an exception with Error object, whose message is one of constants.NOISE_ERROR_* keys, object is no longer usable and there is no need
+ * to call free() method, as it was called for you automatically already
+ *
  * @param {string} protocol_name The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
  */
 !function SymmetricState (protocol_name)
@@ -114,11 +126,7 @@ Object.defineProperty(CipherState_split::, 'constructor', {enumerable: false, va
 	tmp				= allocate_pointer()
 	protocol_name	= allocate(0, protocol_name)
 	error			= lib._noise_symmetricstate_new_by_name(tmp, protocol_name)
-	try
-		assert_no_error(error)
-	catch e
-		tmp.free()
-		throw e
+	assert_no_error(error, tmp)
 	@_state			= tmp.dereference()
 	tmp.free()
 	protocol_name.free()
@@ -140,7 +148,7 @@ SymmetricState:: =
 		input_key_material	= allocate(0, input_key_material)
 		error				= lib._noise_symmetricstate_mix_key(@_state, input_key_material, input_key_material.length)
 		input_key_material.free()
-		assert_no_error(error)
+		assert_no_error(error, @)
 	/**
 	 * @param {Uint8Array} data
 	 */
@@ -148,11 +156,12 @@ SymmetricState:: =
 		data	= allocate(0, data)
 		error	= lib._noise_symmetricstate_mix_hash(@_state, data, data.length)
 		data.free()
-		assert_no_error(error)
+		assert_no_error(error, @)
 	/**
 	 * @param {Uint8Array} input_key_material
 	 */
 	MixKeyAndHash		: (input_key_material) !->
+		# TODO: should be a single call to wrapper method in future versions of noise-c, also it will be possible to then remove _SymmetricState_get_ck
 		@MixKey(input_key_material)
 		tmp		= allocate_pointer()
 		length	= lib._SymmetricState_get_ck(@_state, tmp)
@@ -175,7 +184,7 @@ SymmetricState:: =
 		ciphertext	= plaintext.get()
 		plaintext.free()
 		buffer.free()
-		assert_no_error(error)
+		assert_no_error(error, @)
 		ciphertext
 	/**
 	 * @param {Uint8Array} ciphertext
@@ -190,7 +199,7 @@ SymmetricState:: =
 		plaintext	= ciphertext.get().slice(0, ciphertext.length - @_mac_length)
 		ciphertext.free()
 		buffer.free()
-		assert_no_error(error)
+		assert_no_error(error, @)
 		plaintext
 	/**
 	 * @return {CipherState[]}
@@ -218,6 +227,9 @@ SymmetricState:: =
 				cs2.free()
 			throw e
 		[cs1, cs2]
+	/**
+	 * Call this when object is not needed anymore to avoid memory leaks
+	 */
 	free				: !->
 		error	= lib._noise_symmetricstate_free(@_state)
 		delete @_state
@@ -225,38 +237,46 @@ SymmetricState:: =
 		assert_no_error(error)
 
 /**
- * @param {string}			protocol_name	The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
- * @param {number}			initiator		The role for the new object, either constants.NOISE_ROLE_INITIATOR or constants.NOISE_ROLE_RESPONDER
- * @param {null|Uint8Array}	prologue		Prologue value
- * @param {null|Uint8Array}	s				Local static private key
- * @param {null|Uint8Array}	rs				Remote static public key
- * @param {null|Uint8Array}	psk				Pre-shared symmetric key
- * TODO: The rest of arguments
+ * The HandshakeState object, API is close to the spec: http://noiseprotocol.org/noise.html#the-handshakestate-object
+ *
+ * NOTE: If you ever get an exception with Error object, whose message is one of constants.NOISE_ERROR_* keys, object is no longer usable and there is no need
+ * to call free() method, as it was called for you automatically already
+ *
+ * @param {string}	protocol_name	The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
+ * @param {number}	initiator		The role for the new object, either constants.NOISE_ROLE_INITIATOR or constants.NOISE_ROLE_RESPONDER
  */
-!function HandshakeState (protocol_name, role, prologue = null, s = null, e = null, rs = null, re = null, psk = null)
+!function HandshakeState (protocol_name, role)
 	if !(@ instanceof HandshakeState)
 		return new HandshakeState(protocol_name, role, prologue, s, e, rs, re, psk)
 	tmp				= allocate_pointer()
 	protocol_name	= allocate(0, protocol_name)
 	error			= lib._noise_handshakestate_new_by_name(tmp, protocol_name, role)
-	try
-		assert_no_error(error)
-	catch e
-		tmp.free()
-		throw e
+	protocol_name.free()
+	assert_no_error(error, tmp)
 	@_state			= tmp.dereference()
 	tmp.free()
-	protocol_name.free()
-	try
+
+HandshakeState:: =
+	/**
+	 * Must be called after object creation and after switch to a fallback handshake.
+	 *
+	 * In case of fallback handshake it is not required to specify values that are the same as in previous Initialize() call, those will be used by default
+	 *
+	 * @param {null|Uint8Array}	prologue	Prologue value
+	 * @param {null|Uint8Array}	s			Local static private key
+	 * @param {null|Uint8Array}	rs			Remote static public key
+	 * @param {null|Uint8Array}	psk			Pre-shared symmetric key
+	 */
+	Initialize		: (prologue = null, s = null, rs = null, psk = null) !->
 		prologue	= allocate(0, prologue || undefined)
 		error		= lib._noise_handshakestate_set_prologue(@_state, prologue, prologue.length)
 		prologue.free()
-		assert_no_error(error)
+		assert_no_error(error, @)
 		if psk && lib._noise_handshakestate_needs_pre_shared_key(@_state) == 1
 			psk		= allocate(0, psk)
 			error	= lib._noise_handshakestate_set_pre_shared_key(@_state, psk, psk.length)
 			psk.free()
-			assert_no_error(error)
+			assert_no_error(error, @)
 		if lib._noise_handshakestate_needs_local_keypair(@_state) == 1
 			if !s
 				throw new Error('Local static private key (s) required, but not provided')
@@ -264,7 +284,7 @@ SymmetricState:: =
 			s		= allocate(0, s)
 			error	= lib._noise_dhstate_set_keypair_private(dh, s, s.length)
 			s.free()
-			assert_no_error(error)
+			assert_no_error(error, @)
 		if lib._noise_handshakestate_needs_remote_public_key(@_state) == 1
 			if !rs
 				throw new Error('Remote static private key (rs) required, but not provided')
@@ -272,24 +292,22 @@ SymmetricState:: =
 			rs		= allocate(0, rs)
 			error	= lib._noise_dhstate_set_public_key(dh, rs, rs.length)
 			rs.free()
-			assert_no_error(error)
+			assert_no_error(error, @)
 		error	= lib._noise_handshakestate_start(@_state)
-		assert_no_error(error)
-	catch e
-		try
-			@free()
-		throw e
-
-HandshakeState:: =
+		assert_no_error(error, @)
 	/**
 	 * @return {number} One of constants.NOISE_ACTION_*
 	 */
 	GetAction		: ->
-		action	= lib._noise_handshakestate_get_action(@_state)
-		if action == constants.NOISE_ACTION_FAILED
-			# TODO: fallback?
-			@free()
-		action
+		lib._noise_handshakestate_get_action(@_state)
+	/**
+	 * Might be called when GetAction() returned constants.NOISE_ACTION_FAILED and switching to fallback protocol is desired
+	 *
+	 * @param {number} pattern_id One of constants.NOISE_PATTERN_*_FALLBACK*
+	 */
+	FallbackTo		: (pattern_id = constants.NOISE_PATTERN_XX_FALLBACK) !->
+		error	= lib._noise_handshakestate_fallback_to(pattern_id)
+		assert_no_error(error, @)
 	/**
 	 * @param {null|Uint8Array} payload null if no payload is required
 	 *
@@ -307,12 +325,10 @@ HandshakeState:: =
 			payload.free()
 			payload_buffer.free()
 		try
-			assert_no_error(error)
+			assert_no_error(error, @)
 		catch e
 			message.free()
 			message_buffer.free()
-			try
-				@free()
 			throw e
 		message_length	= lib._NoiseBuffer_get_size(message)
 		real_message	= message.get().slice(0, message_length)
@@ -336,12 +352,10 @@ HandshakeState:: =
 		message.free()
 		message_buffer.free()
 		try
-			assert_no_error(error)
+			assert_no_error(error, @)
 		catch e
 			payload.free()
 			payload_buffer.free()
-			try
-				@free()
 			throw e
 		real_payload	= null
 		if payload_needed
@@ -353,12 +367,12 @@ HandshakeState:: =
 	/**
 	 * @return {CipherState[]} [send, receive]
 	 */
-	Split				: ->
+	Split			: ->
 		tmp1	= allocate_pointer()
 		tmp2	= allocate_pointer()
 		error	= lib._noise_handshakestate_split(@_state, tmp1, tmp2)
 		try
-			assert_no_error(error)
+			assert_no_error(error, @)
 		catch e
 			tmp1.free()
 			tmp2.free()
@@ -376,6 +390,9 @@ HandshakeState:: =
 				cs2.free()
 			throw e
 		[cs1, cs2]
+	/**
+	 * Call this when object is not needed anymore to avoid memory leaks
+	 */
 	free			: !->
 		error	= lib._noise_handshakestate_free(@_state)
 		delete @_state
