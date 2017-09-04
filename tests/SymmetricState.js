@@ -119,6 +119,8 @@
                 }, "Split() doesn't throw an error");
                 t.ok(cs1 instanceof lib.CipherState, 'Element #1 after Split() implements CipherState');
                 t.ok(cs2 instanceof lib.CipherState, 'Element #2 after Split() implements CipherState');
+                cs1.free();
+                cs2.free();
                 t.throws(function(){
                   ss3.EncryptAndHash(plaintext);
                 }, "SymmetricState shouldn't be usable after Split() is called");

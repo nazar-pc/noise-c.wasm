@@ -321,10 +321,12 @@
       s == null && (s = null);
       rs == null && (rs = null);
       psk == null && (psk = null);
-      prologue = allocate(0, prologue || undefined);
-      error = lib._noise_handshakestate_set_prologue(this._state, prologue, prologue.length);
-      prologue.free();
-      assert_no_error(error, this);
+      if (prologue) {
+        prologue = allocate(0, prologue);
+        error = lib._noise_handshakestate_set_prologue(this._state, prologue, prologue.length);
+        prologue.free();
+        assert_no_error(error, this);
+      }
       if (psk && lib._noise_handshakestate_needs_pre_shared_key(this._state) === 1) {
         psk = allocate(0, psk);
         error = lib._noise_handshakestate_set_pre_shared_key(this._state, psk, psk.length);

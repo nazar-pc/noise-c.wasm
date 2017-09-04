@@ -111,7 +111,7 @@ gulp
 			'_noise_handshakestate_get_fixed_ephemeral_dh'
 			'_noise_handshakestate_get_fixed_hybrid_dh'
 #			'_noise_handshakestate_get_handshake_hash'
-#			'_noise_handshakestate_get_local_keypair_dh'
+			'_noise_handshakestate_get_local_keypair_dh'
 #			'_noise_handshakestate_get_protocol_id'
 			'_noise_handshakestate_get_remote_public_key_dh'
 #			'_noise_handshakestate_get_role'

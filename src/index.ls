@@ -268,10 +268,11 @@ HandshakeState:: =
 	 * @param {null|Uint8Array}	psk			Pre-shared symmetric key
 	 */
 	Initialize		: (prologue = null, s = null, rs = null, psk = null) !->
-		prologue	= allocate(0, prologue || undefined)
-		error		= lib._noise_handshakestate_set_prologue(@_state, prologue, prologue.length)
-		prologue.free()
-		assert_no_error(error, @)
+		if prologue
+			prologue	= allocate(0, prologue)
+			error		= lib._noise_handshakestate_set_prologue(@_state, prologue, prologue.length)
+			prologue.free()
+			assert_no_error(error, @)
 		if psk && lib._noise_handshakestate_needs_pre_shared_key(@_state) == 1
 			psk		= allocate(0, psk)
 			error	= lib._noise_handshakestate_set_pre_shared_key(@_state, psk, psk.length)
