@@ -316,7 +316,7 @@ HandshakeState:: =
 	 */
 	WriteMessage	: (payload = null) ->
 		message			= allocate(constants.NOISE_MAX_PAYLOAD_LEN)
-		message_buffer	= allocate_buffer(message_buffer, 0)
+		message_buffer	= allocate_buffer(message, 0)
 		payload_buffer	= null
 		if payload
 			payload			= allocate(0, payload)

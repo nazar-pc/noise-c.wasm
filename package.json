@@ -29,6 +29,9 @@
 	"bugs"            : "https://github.com/nazar-pc/noise-c.wasm/issues",
 	"docs"            : "https://github.com/nazar-pc/noise-c.wasm",
 	"main"            : "src/index.js",
+	"browser"         : {
+		"./src/randombytes" : "./src/randombytes.browser"
+	},
 	"files"           : [],
 	"scripts"         : {
 		"test"   : "tape tests/**/*.js",
