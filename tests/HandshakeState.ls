@@ -8,13 +8,13 @@ randombytes	= require('crypto').randomBytes
 lib			= require('..')
 test		= require('tape')
 
-one_way_patterns	= ['N' 'X' 'K']
-two_way_patterns	= ['NN' 'NK' 'NX' 'XN' 'XK' 'XX' 'KN' 'KK' 'KX' 'IN' 'IK' 'IX']
-patterns			= one_way_patterns.concat(two_way_patterns)
+patterns			= [
+	'N' 'X' 'K'
+#	'NN' 'NK' 'NX' 'XN' 'XK' 'XX' 'KN' 'KK' 'KX' 'IN' 'IK' 'IX'
+]
 curves				= ['25519' '448'/* 'NewHope'*/]
 ciphers				= ['ChaChaPoly' 'AESGCM']
 hashes				= ['SHA256' 'SHA512' 'BLAKE2s' 'BLAKE2b']
-roles				= ['NOISE_ROLE_INITIATOR' 'NOISE_ROLE_RESPONDER']
 prologues			= [null, new Uint8Array, randombytes(10)]
 psks				= [null, new Uint8Array, randombytes(32)]
 ads					= [new Uint8Array, randombytes(256)]
@@ -43,13 +43,12 @@ no_empty_keys		=
 	local	: /^[KXI]/
 	# Any one-way pattern or pattern that ends with K, X or I requires responders's static public key
 	remote	: /(^.|[KXI])$/
-no_empty_keys		=
-	NOISE_ROLE_INITIATOR	:
-		local	: no_empty_keys.local
-		remote	: no_empty_keys.remote
-	NOISE_ROLE_RESPONDER	:
-		local	: no_empty_keys.remote
-		remote	: no_empty_keys.local
+expected_actions	= {}
+expected_actions.N	=
+	initiator	: ['NOISE_ACTION_WRITE_MESSAGE']
+	responder	: ['NOISE_ACTION_READ_MESSAGE']
+expected_actions.X	= expected_actions.N
+expected_actions.K	= expected_actions.N
 
 # Convenient for debugging common issues instead of looping through thousands of combinations
 #patterns	= [patterns[0]]
@@ -63,21 +62,25 @@ no_empty_keys		=
 
 <-! lib.ready
 for let pattern in patterns => for let curve in curves => for let cipher in ciphers => for let hash in hashes => for let prologue in prologues => for let psk in psks => for let role_key_s in roles_keys => for let role_key_rs in roles_keys
+	# Skip some loops where patterns require local or remote keys to be present, but they are `null` for this particular loop iteration
+	if !role_key_s && no_empty_keys.local.test(pattern)
+		return
+	if !role_key_rs && no_empty_keys.remote.test(pattern)
+		return
 	protocol_name	= "Noise_#{pattern}_#{curve}_#{cipher}_#{hash}"
 	prologue_title	= if prologue then "length #{prologue.length}" else 'null'
 	psk_title		= if psk then "length #{psk.length}" else 'null'
 
-	for let role in roles
-		# Skip some loops where patterns require local or remote keys to be present, but they are `null` for this particular loop iteration
-		if !role_key_s && no_empty_keys[role].local.test(pattern)
-			return
-		if !role_key_rs && no_empty_keys[role].remote.test(pattern)
-			return
-		test("HandshakeState: #protocol_name, role #role, prologue #prologue_title, psk #psk_title, role_key_s #role_key_s, role_key_rs #role_key_rs", (t) !->
-			var hs1
+	for let ad in ads => for let plaintext in plaintexts
+		test("HandshakeState: #protocol_name, prologue #prologue_title, psk #psk_title, role_key_s #role_key_s, role_key_rs #role_key_rs, plaintext length #{plaintext.length}, ad length #{ad.length}", (t) !->
+			var initiator_hs, responder_hs
 			t.doesNotThrow (!->
-				hs1	:= new lib.HandshakeState(protocol_name, lib.constants[role])
-			), "Constructor doesn't throw an error"
+				initiator_hs	:= new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR)
+			), "Initiator constructor doesn't throw an error"
+
+			t.doesNotThrow (!->
+				responder_hs	:= new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER)
+			), "Responder constructor doesn't throw an error"
 
 			t.doesNotThrow (!->
 				s	= role_key_s
@@ -86,101 +89,104 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 				rs	= role_key_rs
 				if rs
 					rs	= static_keys[rs].public[curve]
-				hs1.Initialize(prologue, s, rs, psk)
-			), "Initialize() doesn't throw an error"
+				initiator_hs.Initialize(prologue, s, rs, psk)
+			), "Initiator Initialize() doesn't throw an error"
 
-			var action
 			t.doesNotThrow (!->
-				action	:= hs1.GetAction()
-			), "GetAction() doesn't throw an error"
+				s	= role_key_rs
+				if s
+					s	= static_keys[s].private[curve]
+				rs	= role_key_s
+				if rs
+					rs	= static_keys[rs].public[curve]
+				responder_hs.Initialize(prologue, s, rs, psk)
+			), "Responder Initialize() doesn't throw an error"
 
-			t.ok(action == lib.constants.NOISE_ACTION_READ_MESSAGE || action == lib.constants.NOISE_ACTION_WRITE_MESSAGE, 'GetAction() initially returns either read or write')
-			hs1.free()
+			initiator_actions	= expected_actions[pattern].initiator.slice()
+			responder_actions	= expected_actions[pattern].responder.slice()
+			var message
+			while action = initiator_actions.shift()
+				if action
+					t.equal(initiator_hs.GetAction(), lib.constants[action], "Initiator expected action: #action")
+
+				switch action
+					case 'NOISE_ACTION_WRITE_MESSAGE'
+						t.doesNotThrow (!->
+							message	:= initiator_hs.WriteMessage()
+						), "Initiator WriteMessage() doesn't throw an error"
+
+						while action = responder_actions.shift()
+							if action
+								t.equal(responder_hs.GetAction(), lib.constants[action], "Responder expected action: #action")
+
+							switch action
+								case 'NOISE_ACTION_READ_MESSAGE'
+									t.doesNotThrow (!->
+										responder_hs.ReadMessage(message)
+									), "Responder ReadMessage() doesn't throw an error"
+								case 'NOISE_ACTION_WRITE_MESSAGE'
+									t.doesNotThrow (!->
+										message	:= responder_hs.WriteMessage()
+									), "Responder WriteMessage() doesn't throw an error"
+					case 'NOISE_ACTION_READ_MESSAGE' ''
+						t.doesNotThrow (!->
+							initiator_hs.ReadMessage(message)
+						), "Initiator ReadMessage() doesn't throw an error"
+
+			t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Initiator is ready to split')
+			t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Responder is ready to split')
+
+			var initiator_send, initiator_receive
+			t.doesNotThrow (!->
+				[initiator_send, initiator_receive]	:= initiator_hs.Split()
+			), "Initiator Split() doesn't throw an error"
+			t.ok(initiator_send instanceof lib.CipherState, 'Initiator Element #1 after Split() implements CipherState')
+			t.ok(initiator_receive instanceof lib.CipherState, 'Initiator Element #2 after Split() implements CipherState')
 
 			t.throws (!->
-				hs1.Initialize(plaintext)
-			), "HandshakeState shouldn't be usable after free() is called"
+				initiator_hs.Initialize(plaintext)
+			), "Initiator HandshakeState shouldn't be usable after Split() is called"
+
+			var responder_send, responder_receive
+			t.doesNotThrow (!->
+				[responder_send, responder_receive]	:= responder_hs.Split()
+			), "Responder Split() doesn't throw an error"
+			t.ok(responder_send instanceof lib.CipherState, 'Responder Element #1 after Split() implements CipherState')
+			t.ok(responder_receive instanceof lib.CipherState, 'Responder Element #2 after Split() implements CipherState')
+
+			t.throws (!->
+				responder_hs.Initialize(plaintext)
+			), "Responder HandshakeState shouldn't be usable after Split() is called"
+
+			# Initiator sends data
+			ciphertext	= initiator_send.EncryptWithAd(ad, plaintext)
+
+			t.equal(ciphertext.length, plaintext.length + initiator_send._mac_length, 'Initiator ciphertext has expected length')
+			# Empty plaintext will be, obviously, the same as empty ciphertext
+			if plaintext.length
+				t.notEqual(ciphertext.slice(0, plaintext.length).toString(), plaintext.toString(), 'Initiator ciphertext is not the same as plaintext')
+			initiator_send.free()
+
+			# Responder receives data
+			plaintext_decrypted	= responder_receive.DecryptWithAd(ad, ciphertext)
+			responder_receive.free()
+
+			t.equal(plaintext_decrypted.toString(), plaintext.toString(), 'Responder plaintext decrypted correctly')
+
+			# Responder sends data
+			ciphertext	= responder_send.EncryptWithAd(ad, plaintext)
+
+			t.equal(ciphertext.length, plaintext.length + responder_send._mac_length, 'Responder ciphertext has expected length')
+			# Empty plaintext will be, obviously, the same as empty ciphertext
+			if plaintext.length
+				t.notEqual(ciphertext.slice(0, plaintext.length).toString(), plaintext.toString(), 'Responder ciphertext is not the same as plaintext')
+			responder_send.free()
+
+			# Initiator receives data
+			plaintext_decrypted	= initiator_receive.DecryptWithAd(ad, ciphertext)
+			initiator_receive.free()
+
+			t.equal(plaintext_decrypted.toString(), plaintext.toString(), 'Initiator plaintext decrypted correctly')
 
 			t.end()
 		)
-
-		if role != 'NOISE_ROLE_INITIATOR'
-			return
-
-		for let ad in ads => for let plaintext in plaintexts
-			if pattern in one_way_patterns
-				test("HandshakeState (one-way pattern): #protocol_name, prologue #prologue_title, psk #psk_title, role_key_s #role_key_s, role_key_rs #role_key_rs, plaintext length #{plaintext.length}, ad length #{ad.length}", (t) !->
-					var initiator_hs, responder_hs
-					t.doesNotThrow (!->
-						initiator_hs	:= new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR)
-						responder_hs	:= new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER)
-
-						s	= role_key_s
-						if s
-							s	= static_keys[s].private[curve]
-						rs	= role_key_rs
-						if rs
-							rs	= static_keys[rs].public[curve]
-						initiator_hs.Initialize(prologue, s, rs, psk)
-
-						s	= role_key_rs
-						if s
-							s	= static_keys[s].private[curve]
-						rs	= role_key_s
-						if rs
-							rs	= static_keys[rs].public[curve]
-						responder_hs.Initialize(prologue, s, rs, psk)
-					), "Initialized successfully"
-
-					t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_WRITE_MESSAGE, 'Initiator starts with writing message')
-					var message
-					t.doesNotThrow (!->
-						message	:= initiator_hs.WriteMessage()
-					), "WriteMessage() doesn't throw an error"
-
-					t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Initiator is ready to split')
-
-					var initiator_send, initiator_receive
-					t.doesNotThrow (!->
-						[initiator_send, initiator_receive]	:= initiator_hs.Split()
-					), "Split() doesn't throw an error"
-					t.ok(initiator_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState')
-					t.ok(initiator_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState')
-					initiator_receive.free()
-
-					t.throws (!->
-						initiator_hs.Initialize(plaintext)
-					), "HandshakeState shouldn't be usable after Split() is called"
-
-					ciphertext	= initiator_send.EncryptWithAd(ad, plaintext)
-
-					t.equal(ciphertext.length, plaintext.length + initiator_send._mac_length, 'Ciphertext has expected length')
-					# Empty plaintext will be, obviously, the same as empty ciphertext
-					if plaintext.length
-						t.notEqual(ciphertext.slice(0, plaintext.length).toString(), plaintext.toString(), 'Ciphertext is not the same as plaintext')
-					initiator_send.free()
-
-					t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_READ_MESSAGE, 'Responder starts with reading message')
-
-					t.doesNotThrow (!->
-						debugger
-						responder_hs.ReadMessage(message)
-					), "ReadMessage() doesn't throw an error"
-
-					t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Responder is ready to split')
-
-					var responder_send, responder_receive
-					t.doesNotThrow (!->
-						[responder_send, responder_receive]	:= responder_hs.Split()
-					), "Split() doesn't throw an error"
-					t.ok(responder_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState')
-					t.ok(responder_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState')
-					responder_send.free()
-
-					plaintext_decrypted	= responder_receive.DecryptWithAd(ad, ciphertext)
-					responder_receive.free()
-
-					t.equal(plaintext_decrypted.toString(), plaintext.toString(), 'Plaintext decrypted correctly')
-
-					t.end()
-				)
