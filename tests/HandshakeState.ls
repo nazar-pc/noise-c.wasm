@@ -62,127 +62,125 @@ no_empty_keys		=
 #plaintexts	= [plaintexts[0]]
 
 <-! lib.ready
-for let pattern in patterns => for let curve in curves => for let cipher in ciphers => for let hash in hashes => for let role in roles => for let prologue in prologues => for let psk in psks => for let role_key_s in roles_keys => for let role_key_rs in roles_keys
-	# Skip some loops where patterns require local or remote keys to be present, but they are `null` for this particular loop iteration
-	if !role_key_s && no_empty_keys[role].local.test(pattern)
-		return
-	if !role_key_rs && no_empty_keys[role].remote.test(pattern)
-		return
+for let pattern in patterns => for let curve in curves => for let cipher in ciphers => for let hash in hashes => for let prologue in prologues => for let psk in psks => for let role_key_s in roles_keys => for let role_key_rs in roles_keys
 	protocol_name	= "Noise_#{pattern}_#{curve}_#{cipher}_#{hash}"
 	prologue_title	= if prologue then "length #{prologue.length}" else 'null'
 	psk_title		= if psk then "length #{psk.length}" else 'null'
-	test("HandshakeState: #protocol_name, role #role, prologue #prologue_title, psk #psk_title, role_key_s #role_key_s, role_key_rs #role_key_rs", (t) !->
-		var hs1
-		t.doesNotThrow (!->
-			hs1	:= new lib.HandshakeState(protocol_name, lib.constants[role])
-		), "Constructor doesn't throw an error"
 
-		t.doesNotThrow (!->
-			s	= role_key_s
-			if s
-				s	= static_keys[s].private[curve]
-			rs	= role_key_rs
-			if rs
-				rs	= static_keys[rs].public[curve]
-			hs1.Initialize(prologue, s, rs, psk)
-		), "Initialize() doesn't throw an error"
+	for let role in roles
+		# Skip some loops where patterns require local or remote keys to be present, but they are `null` for this particular loop iteration
+		if !role_key_s && no_empty_keys[role].local.test(pattern)
+			return
+		if !role_key_rs && no_empty_keys[role].remote.test(pattern)
+			return
+		test("HandshakeState: #protocol_name, role #role, prologue #prologue_title, psk #psk_title, role_key_s #role_key_s, role_key_rs #role_key_rs", (t) !->
+			var hs1
+			t.doesNotThrow (!->
+				hs1	:= new lib.HandshakeState(protocol_name, lib.constants[role])
+			), "Constructor doesn't throw an error"
 
-		var action
-		t.doesNotThrow (!->
-			action	:= hs1.GetAction()
-		), "GetAction() doesn't throw an error"
+			t.doesNotThrow (!->
+				s	= role_key_s
+				if s
+					s	= static_keys[s].private[curve]
+				rs	= role_key_rs
+				if rs
+					rs	= static_keys[rs].public[curve]
+				hs1.Initialize(prologue, s, rs, psk)
+			), "Initialize() doesn't throw an error"
 
-		t.ok(action == lib.constants.NOISE_ACTION_READ_MESSAGE || action == lib.constants.NOISE_ACTION_WRITE_MESSAGE, 'GetAction() initially returns either read or write')
-		hs1.free()
+			var action
+			t.doesNotThrow (!->
+				action	:= hs1.GetAction()
+			), "GetAction() doesn't throw an error"
 
-		t.throws (!->
-			hs1.Initialize(plaintext)
-		), "HandshakeState shouldn't be usable after free() is called"
+			t.ok(action == lib.constants.NOISE_ACTION_READ_MESSAGE || action == lib.constants.NOISE_ACTION_WRITE_MESSAGE, 'GetAction() initially returns either read or write')
+			hs1.free()
 
-		t.end()
-	)
+			t.throws (!->
+				hs1.Initialize(plaintext)
+			), "HandshakeState shouldn't be usable after free() is called"
 
-for let pattern in one_way_patterns => for let curve in curves => for let cipher in ciphers => for let hash in hashes => for let prologue in prologues => for let psk in psks => for let role_key_s in roles_keys => for let role_key_rs in roles_keys=> for let ad in ads => for let plaintext in plaintexts
-	# Skip some loops where patterns require local or remote keys to be present, but they are `null` for this particular loop iteration
-	if !role_key_s && no_empty_keys.NOISE_ROLE_INITIATOR.local.test(pattern)
-		return
-	if !role_key_rs
-		return
-	protocol_name	= "Noise_#{pattern}_#{curve}_#{cipher}_#{hash}"
-	prologue_title	= if prologue then "length #{prologue.length}" else 'null'
-	psk_title		= if psk then "length #{psk.length}" else 'null'
-	test("HandshakeState (one-way pattern): #protocol_name, prologue #prologue_title, psk #psk_title, role_key_s #role_key_s, role_key_rs #role_key_rs, plaintext length #{plaintext.length}, ad length #{ad.length}", (t) !->
-		var initiator_hs, responder_hs
-		t.doesNotThrow (!->
-			initiator_hs	:= new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR)
-			responder_hs	:= new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER)
+			t.end()
+		)
 
-			s	= role_key_s
-			if s
-				s	= static_keys[s].private[curve]
-			rs	= role_key_rs
-			if rs
-				rs	= static_keys[rs].public[curve]
-			initiator_hs.Initialize(prologue, s, rs, psk)
+		if role != 'NOISE_ROLE_INITIATOR'
+			return
 
-			s	= role_key_rs
-			if s
-				s	= static_keys[s].private[curve]
-			rs	= role_key_s
-			if rs
-				rs	= static_keys[rs].public[curve]
-			responder_hs.Initialize(prologue, s, rs, psk)
-		), "Initialized successfully"
+		for let ad in ads => for let plaintext in plaintexts
+			if pattern in one_way_patterns
+				test("HandshakeState (one-way pattern): #protocol_name, prologue #prologue_title, psk #psk_title, role_key_s #role_key_s, role_key_rs #role_key_rs, plaintext length #{plaintext.length}, ad length #{ad.length}", (t) !->
+					var initiator_hs, responder_hs
+					t.doesNotThrow (!->
+						initiator_hs	:= new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR)
+						responder_hs	:= new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER)
 
-		t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_WRITE_MESSAGE, 'Initiator starts with writing message')
-		var message
-		t.doesNotThrow (!->
-			message	:= initiator_hs.WriteMessage()
-		), "WriteMessage() doesn't throw an error"
+						s	= role_key_s
+						if s
+							s	= static_keys[s].private[curve]
+						rs	= role_key_rs
+						if rs
+							rs	= static_keys[rs].public[curve]
+						initiator_hs.Initialize(prologue, s, rs, psk)
 
-		t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Initiator is ready to split')
+						s	= role_key_rs
+						if s
+							s	= static_keys[s].private[curve]
+						rs	= role_key_s
+						if rs
+							rs	= static_keys[rs].public[curve]
+						responder_hs.Initialize(prologue, s, rs, psk)
+					), "Initialized successfully"
 
-		var initiator_send, initiator_receive
-		t.doesNotThrow (!->
-			[initiator_send, initiator_receive]	:= initiator_hs.Split()
-		), "Split() doesn't throw an error"
-		t.ok(initiator_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState')
-		t.ok(initiator_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState')
-		initiator_receive.free()
+					t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_WRITE_MESSAGE, 'Initiator starts with writing message')
+					var message
+					t.doesNotThrow (!->
+						message	:= initiator_hs.WriteMessage()
+					), "WriteMessage() doesn't throw an error"
 
-		t.throws (!->
-			initiator_hs.Initialize(plaintext)
-		), "HandshakeState shouldn't be usable after Split() is called"
+					t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Initiator is ready to split')
 
-		ciphertext	= initiator_send.EncryptWithAd(ad, plaintext)
+					var initiator_send, initiator_receive
+					t.doesNotThrow (!->
+						[initiator_send, initiator_receive]	:= initiator_hs.Split()
+					), "Split() doesn't throw an error"
+					t.ok(initiator_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState')
+					t.ok(initiator_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState')
+					initiator_receive.free()
 
-		t.equal(ciphertext.length, plaintext.length + initiator_send._mac_length, 'Ciphertext has expected length')
-		# Empty plaintext will be, obviously, the same as empty ciphertext
-		if plaintext.length
-			t.notEqual(ciphertext.slice(0, plaintext.length).toString(), plaintext.toString(), 'Ciphertext is not the same as plaintext')
-		initiator_send.free()
+					t.throws (!->
+						initiator_hs.Initialize(plaintext)
+					), "HandshakeState shouldn't be usable after Split() is called"
 
-		t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_READ_MESSAGE, 'Responder starts with reading message')
+					ciphertext	= initiator_send.EncryptWithAd(ad, plaintext)
 
-		t.doesNotThrow (!->
-			debugger
-			responder_hs.ReadMessage(message)
-		), "ReadMessage() doesn't throw an error"
+					t.equal(ciphertext.length, plaintext.length + initiator_send._mac_length, 'Ciphertext has expected length')
+					# Empty plaintext will be, obviously, the same as empty ciphertext
+					if plaintext.length
+						t.notEqual(ciphertext.slice(0, plaintext.length).toString(), plaintext.toString(), 'Ciphertext is not the same as plaintext')
+					initiator_send.free()
 
-		t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Responder is ready to split')
+					t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_READ_MESSAGE, 'Responder starts with reading message')
 
-		var responder_send, responder_receive
-		t.doesNotThrow (!->
-			[responder_send, responder_receive]	:= responder_hs.Split()
-		), "Split() doesn't throw an error"
-		t.ok(responder_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState')
-		t.ok(responder_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState')
-		responder_send.free()
+					t.doesNotThrow (!->
+						debugger
+						responder_hs.ReadMessage(message)
+					), "ReadMessage() doesn't throw an error"
 
-		plaintext_decrypted	= responder_receive.DecryptWithAd(ad, ciphertext)
-		responder_receive.free()
+					t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Responder is ready to split')
 
-		t.equal(plaintext_decrypted.toString(), plaintext.toString(), 'Plaintext decrypted correctly')
+					var responder_send, responder_receive
+					t.doesNotThrow (!->
+						[responder_send, responder_receive]	:= responder_hs.Split()
+					), "Split() doesn't throw an error"
+					t.ok(responder_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState')
+					t.ok(responder_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState')
+					responder_send.free()
 
-		t.end()
-	)
+					plaintext_decrypted	= responder_receive.DecryptWithAd(ad, ciphertext)
+					responder_receive.free()
+
+					t.equal(plaintext_decrypted.toString(), plaintext.toString(), 'Plaintext decrypted correctly')
+
+					t.end()
+				)

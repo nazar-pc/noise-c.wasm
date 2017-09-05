@@ -63,97 +63,7 @@
     for (i$ = 0, len$ = (ref$ = patterns).length; i$ < len$; ++i$) {
       (fn$.call(this, ref$[i$]));
     }
-    for (i$ = 0, len$ = (ref$ = one_way_patterns).length; i$ < len$; ++i$) {
-      (fn1$.call(this, ref$[i$]));
-    }
     function fn$(pattern){
-      var i$, ref$, len$;
-      for (i$ = 0, len$ = (ref$ = curves).length; i$ < len$; ++i$) {
-        (fn$.call(this, ref$[i$]));
-      }
-      function fn$(curve){
-        var i$, ref$, len$;
-        for (i$ = 0, len$ = (ref$ = ciphers).length; i$ < len$; ++i$) {
-          (fn$.call(this, ref$[i$]));
-        }
-        function fn$(cipher){
-          var i$, ref$, len$;
-          for (i$ = 0, len$ = (ref$ = hashes).length; i$ < len$; ++i$) {
-            (fn$.call(this, ref$[i$]));
-          }
-          function fn$(hash){
-            var i$, ref$, len$;
-            for (i$ = 0, len$ = (ref$ = roles).length; i$ < len$; ++i$) {
-              (fn$.call(this, ref$[i$]));
-            }
-            function fn$(role){
-              var i$, ref$, len$;
-              for (i$ = 0, len$ = (ref$ = prologues).length; i$ < len$; ++i$) {
-                (fn$.call(this, ref$[i$]));
-              }
-              function fn$(prologue){
-                var i$, ref$, len$;
-                for (i$ = 0, len$ = (ref$ = psks).length; i$ < len$; ++i$) {
-                  (fn$.call(this, ref$[i$]));
-                }
-                function fn$(psk){
-                  var i$, ref$, len$;
-                  for (i$ = 0, len$ = (ref$ = roles_keys).length; i$ < len$; ++i$) {
-                    (fn$.call(this, ref$[i$]));
-                  }
-                  function fn$(role_key_s){
-                    var i$, ref$, len$;
-                    for (i$ = 0, len$ = (ref$ = roles_keys).length; i$ < len$; ++i$) {
-                      (fn$.call(this, ref$[i$]));
-                    }
-                    function fn$(role_key_rs){
-                      var protocol_name, prologue_title, psk_title;
-                      if (!role_key_s && no_empty_keys[role].local.test(pattern)) {
-                        return;
-                      }
-                      if (!role_key_rs && no_empty_keys[role].remote.test(pattern)) {
-                        return;
-                      }
-                      protocol_name = "Noise_" + pattern + "_" + curve + "_" + cipher + "_" + hash;
-                      prologue_title = prologue ? "length " + prologue.length : 'null';
-                      psk_title = psk ? "length " + psk.length : 'null';
-                      test("HandshakeState: " + protocol_name + ", role " + role + ", prologue " + prologue_title + ", psk " + psk_title + ", role_key_s " + role_key_s + ", role_key_rs " + role_key_rs, function(t){
-                        var hs1, action;
-                        t.doesNotThrow(function(){
-                          hs1 = new lib.HandshakeState(protocol_name, lib.constants[role]);
-                        }, "Constructor doesn't throw an error");
-                        t.doesNotThrow(function(){
-                          var s, rs;
-                          s = role_key_s;
-                          if (s) {
-                            s = static_keys[s]['private'][curve];
-                          }
-                          rs = role_key_rs;
-                          if (rs) {
-                            rs = static_keys[rs]['public'][curve];
-                          }
-                          hs1.Initialize(prologue, s, rs, psk);
-                        }, "Initialize() doesn't throw an error");
-                        t.doesNotThrow(function(){
-                          action = hs1.GetAction();
-                        }, "GetAction() doesn't throw an error");
-                        t.ok(action === lib.constants.NOISE_ACTION_READ_MESSAGE || action === lib.constants.NOISE_ACTION_WRITE_MESSAGE, 'GetAction() initially returns either read or write');
-                        hs1.free();
-                        t.throws(function(){
-                          hs1.Initialize(plaintext);
-                        }, "HandshakeState shouldn't be usable after free() is called");
-                        t.end();
-                      });
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    function fn1$(pattern){
       var i$, ref$, len$;
       for (i$ = 0, len$ = (ref$ = curves).length; i$ < len$; ++i$) {
         (fn$.call(this, ref$[i$]));
@@ -189,90 +99,127 @@
                     (fn$.call(this, ref$[i$]));
                   }
                   function fn$(role_key_rs){
-                    var i$, ref$, len$;
-                    for (i$ = 0, len$ = (ref$ = ads).length; i$ < len$; ++i$) {
+                    var protocol_name, prologue_title, psk_title, i$, ref$, len$;
+                    protocol_name = "Noise_" + pattern + "_" + curve + "_" + cipher + "_" + hash;
+                    prologue_title = prologue ? "length " + prologue.length : 'null';
+                    psk_title = psk ? "length " + psk.length : 'null';
+                    for (i$ = 0, len$ = (ref$ = roles).length; i$ < len$; ++i$) {
                       (fn$.call(this, ref$[i$]));
                     }
-                    function fn$(ad){
+                    function fn$(role){
                       var i$, ref$, len$;
-                      for (i$ = 0, len$ = (ref$ = plaintexts).length; i$ < len$; ++i$) {
+                      if (!role_key_s && no_empty_keys[role].local.test(pattern)) {
+                        return;
+                      }
+                      if (!role_key_rs && no_empty_keys[role].remote.test(pattern)) {
+                        return;
+                      }
+                      test("HandshakeState: " + protocol_name + ", role " + role + ", prologue " + prologue_title + ", psk " + psk_title + ", role_key_s " + role_key_s + ", role_key_rs " + role_key_rs, function(t){
+                        var hs1, action;
+                        t.doesNotThrow(function(){
+                          hs1 = new lib.HandshakeState(protocol_name, lib.constants[role]);
+                        }, "Constructor doesn't throw an error");
+                        t.doesNotThrow(function(){
+                          var s, rs;
+                          s = role_key_s;
+                          if (s) {
+                            s = static_keys[s]['private'][curve];
+                          }
+                          rs = role_key_rs;
+                          if (rs) {
+                            rs = static_keys[rs]['public'][curve];
+                          }
+                          hs1.Initialize(prologue, s, rs, psk);
+                        }, "Initialize() doesn't throw an error");
+                        t.doesNotThrow(function(){
+                          action = hs1.GetAction();
+                        }, "GetAction() doesn't throw an error");
+                        t.ok(action === lib.constants.NOISE_ACTION_READ_MESSAGE || action === lib.constants.NOISE_ACTION_WRITE_MESSAGE, 'GetAction() initially returns either read or write');
+                        hs1.free();
+                        t.throws(function(){
+                          hs1.Initialize(plaintext);
+                        }, "HandshakeState shouldn't be usable after free() is called");
+                        t.end();
+                      });
+                      if (role !== 'NOISE_ROLE_INITIATOR') {
+                        return;
+                      }
+                      for (i$ = 0, len$ = (ref$ = ads).length; i$ < len$; ++i$) {
                         (fn$.call(this, ref$[i$]));
                       }
-                      function fn$(plaintext){
-                        var protocol_name, prologue_title, psk_title;
-                        if (!role_key_s && no_empty_keys.NOISE_ROLE_INITIATOR.local.test(pattern)) {
-                          return;
+                      function fn$(ad){
+                        var i$, ref$, len$;
+                        for (i$ = 0, len$ = (ref$ = plaintexts).length; i$ < len$; ++i$) {
+                          (fn$.call(this, ref$[i$]));
                         }
-                        if (!role_key_rs) {
-                          return;
-                        }
-                        protocol_name = "Noise_" + pattern + "_" + curve + "_" + cipher + "_" + hash;
-                        prologue_title = prologue ? "length " + prologue.length : 'null';
-                        psk_title = psk ? "length " + psk.length : 'null';
-                        test("HandshakeState (one-way pattern): " + protocol_name + ", prologue " + prologue_title + ", psk " + psk_title + ", role_key_s " + role_key_s + ", role_key_rs " + role_key_rs + ", plaintext length " + plaintext.length + ", ad length " + ad.length, function(t){
-                          var initiator_hs, responder_hs, message, initiator_send, initiator_receive, ciphertext, responder_send, responder_receive, plaintext_decrypted;
-                          t.doesNotThrow(function(){
-                            var s, rs;
-                            initiator_hs = new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR);
-                            responder_hs = new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER);
-                            s = role_key_s;
-                            if (s) {
-                              s = static_keys[s]['private'][curve];
-                            }
-                            rs = role_key_rs;
-                            if (rs) {
-                              rs = static_keys[rs]['public'][curve];
-                            }
-                            initiator_hs.Initialize(prologue, s, rs, psk);
-                            s = role_key_rs;
-                            if (s) {
-                              s = static_keys[s]['private'][curve];
-                            }
-                            rs = role_key_s;
-                            if (rs) {
-                              rs = static_keys[rs]['public'][curve];
-                            }
-                            responder_hs.Initialize(prologue, s, rs, psk);
-                          }, "Initialized successfully");
-                          t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_WRITE_MESSAGE, 'Initiator starts with writing message');
-                          t.doesNotThrow(function(){
-                            message = initiator_hs.WriteMessage();
-                          }, "WriteMessage() doesn't throw an error");
-                          t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Initiator is ready to split');
-                          t.doesNotThrow(function(){
-                            var ref$;
-                            ref$ = initiator_hs.Split(), initiator_send = ref$[0], initiator_receive = ref$[1];
-                          }, "Split() doesn't throw an error");
-                          t.ok(initiator_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState');
-                          t.ok(initiator_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState');
-                          initiator_receive.free();
-                          t.throws(function(){
-                            initiator_hs.Initialize(plaintext);
-                          }, "HandshakeState shouldn't be usable after Split() is called");
-                          ciphertext = initiator_send.EncryptWithAd(ad, plaintext);
-                          t.equal(ciphertext.length, plaintext.length + initiator_send._mac_length, 'Ciphertext has expected length');
-                          if (plaintext.length) {
-                            t.notEqual(ciphertext.slice(0, plaintext.length).toString(), plaintext.toString(), 'Ciphertext is not the same as plaintext');
+                        function fn$(plaintext){
+                          if (in$(pattern, one_way_patterns)) {
+                            test("HandshakeState (one-way pattern): " + protocol_name + ", prologue " + prologue_title + ", psk " + psk_title + ", role_key_s " + role_key_s + ", role_key_rs " + role_key_rs + ", plaintext length " + plaintext.length + ", ad length " + ad.length, function(t){
+                              var initiator_hs, responder_hs, message, initiator_send, initiator_receive, ciphertext, responder_send, responder_receive, plaintext_decrypted;
+                              t.doesNotThrow(function(){
+                                var s, rs;
+                                initiator_hs = new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR);
+                                responder_hs = new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER);
+                                s = role_key_s;
+                                if (s) {
+                                  s = static_keys[s]['private'][curve];
+                                }
+                                rs = role_key_rs;
+                                if (rs) {
+                                  rs = static_keys[rs]['public'][curve];
+                                }
+                                initiator_hs.Initialize(prologue, s, rs, psk);
+                                s = role_key_rs;
+                                if (s) {
+                                  s = static_keys[s]['private'][curve];
+                                }
+                                rs = role_key_s;
+                                if (rs) {
+                                  rs = static_keys[rs]['public'][curve];
+                                }
+                                responder_hs.Initialize(prologue, s, rs, psk);
+                              }, "Initialized successfully");
+                              t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_WRITE_MESSAGE, 'Initiator starts with writing message');
+                              t.doesNotThrow(function(){
+                                message = initiator_hs.WriteMessage();
+                              }, "WriteMessage() doesn't throw an error");
+                              t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Initiator is ready to split');
+                              t.doesNotThrow(function(){
+                                var ref$;
+                                ref$ = initiator_hs.Split(), initiator_send = ref$[0], initiator_receive = ref$[1];
+                              }, "Split() doesn't throw an error");
+                              t.ok(initiator_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState');
+                              t.ok(initiator_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState');
+                              initiator_receive.free();
+                              t.throws(function(){
+                                initiator_hs.Initialize(plaintext);
+                              }, "HandshakeState shouldn't be usable after Split() is called");
+                              ciphertext = initiator_send.EncryptWithAd(ad, plaintext);
+                              t.equal(ciphertext.length, plaintext.length + initiator_send._mac_length, 'Ciphertext has expected length');
+                              if (plaintext.length) {
+                                t.notEqual(ciphertext.slice(0, plaintext.length).toString(), plaintext.toString(), 'Ciphertext is not the same as plaintext');
+                              }
+                              initiator_send.free();
+                              t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_READ_MESSAGE, 'Responder starts with reading message');
+                              t.doesNotThrow(function(){
+                                debugger;
+                                responder_hs.ReadMessage(message);
+                              }, "ReadMessage() doesn't throw an error");
+                              t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Responder is ready to split');
+                              t.doesNotThrow(function(){
+                                var ref$;
+                                ref$ = responder_hs.Split(), responder_send = ref$[0], responder_receive = ref$[1];
+                              }, "Split() doesn't throw an error");
+                              t.ok(responder_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState');
+                              t.ok(responder_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState');
+                              responder_send.free();
+                              plaintext_decrypted = responder_receive.DecryptWithAd(ad, ciphertext);
+                              responder_receive.free();
+                              t.equal(plaintext_decrypted.toString(), plaintext.toString(), 'Plaintext decrypted correctly');
+                              t.end();
+                            });
                           }
-                          initiator_send.free();
-                          t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_READ_MESSAGE, 'Responder starts with reading message');
-                          t.doesNotThrow(function(){
-                            debugger;
-                            responder_hs.ReadMessage(message);
-                          }, "ReadMessage() doesn't throw an error");
-                          t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Responder is ready to split');
-                          t.doesNotThrow(function(){
-                            var ref$;
-                            ref$ = responder_hs.Split(), responder_send = ref$[0], responder_receive = ref$[1];
-                          }, "Split() doesn't throw an error");
-                          t.ok(responder_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState');
-                          t.ok(responder_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState');
-                          responder_send.free();
-                          plaintext_decrypted = responder_receive.DecryptWithAd(ad, ciphertext);
-                          responder_receive.free();
-                          t.equal(plaintext_decrypted.toString(), plaintext.toString(), 'Plaintext decrypted correctly');
-                          t.end();
-                        });
+                        }
                       }
                     }
                   }
@@ -284,4 +231,9 @@
       }
     }
   });
+  function in$(x, xs){
+    var i = -1, l = xs.length >>> 0;
+    while (++i < l) if (x === xs[i]) return true;
+    return false;
+  }
 }).call(this);
