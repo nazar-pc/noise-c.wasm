@@ -11,13 +11,13 @@ module.exports = {ready: lib.then, constants, CipherState, SymmetricState, Hands
 
 allocate			= lib.allocateBytes
 allocate_pointer	= lib.allocatePointer
-allocate_buffer		= (data, size) ->
+function allocate_buffer (data, size)
 	tmp		= allocate_pointer()
 	lib._NoiseBuffer_create(tmp, data, size, data.length)
 	buffer	= tmp.dereference()
 	tmp.free()
 	buffer
-assert_no_error		= (error, object_to_free) !->
+!function assert_no_error (error, object_to_free)
 	if error == constants.NOISE_ERROR_NONE
 		return
 	for key, code of constants

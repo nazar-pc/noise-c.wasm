@@ -2,12 +2,15 @@
 	"name"            : "noise-c.wasm",
 	"description"     : "rweather/noise-c compiled to WebAssembly using Emscripten and optimized for small size",
 	"keywords"        : [
+		"noise",
 		"noise protocol",
 		"noise-c",
 		"authenticated encryption",
 		"aead",
 		"signature",
-		"webassembly"
+		"webassembly",
+		"wasm",
+		"emscripten"
 	],
 	"version"         : "0.0.1",
 	"homepage"        : "https://github.com/nazar-pc/noise-c.wasm",

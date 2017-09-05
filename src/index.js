@@ -6,7 +6,7 @@
  * @license   MIT License, see license.txt
  */
 (function(){
-  var constants, lib, allocate, allocate_pointer, allocate_buffer, assert_no_error;
+  var constants, lib, allocate, allocate_pointer;
   constants = require('./constants');
   lib = require('../noise-c')();
   module.exports = {
@@ -18,15 +18,15 @@
   };
   allocate = lib.allocateBytes;
   allocate_pointer = lib.allocatePointer;
-  allocate_buffer = function(data, size){
+  function allocate_buffer(data, size){
     var tmp, buffer;
     tmp = allocate_pointer();
     lib._NoiseBuffer_create(tmp, data, size, data.length);
     buffer = tmp.dereference();
     tmp.free();
     return buffer;
-  };
-  assert_no_error = function(error, object_to_free){
+  }
+  function assert_no_error(error, object_to_free){
     var key, ref$, code;
     if (error === constants.NOISE_ERROR_NONE) {
       return;
@@ -42,7 +42,7 @@
         throw new Error(key);
       }
     }
-  };
+  }
   /**
    * The CipherState object, API is close to the spec: http://noiseprotocol.org/noise.html#the-cipherstate-object
    *
