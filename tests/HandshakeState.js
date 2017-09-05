@@ -10,7 +10,7 @@
   randombytes = require('crypto').randomBytes;
   lib = require('..');
   test = require('tape');
-  patterns = ['N', 'X', 'K'];
+  patterns = ['N', 'X', 'K', 'NN', 'NK', 'NX', 'XN', 'XK', 'XX', 'KN', 'KK', 'KX', 'IN', 'IK', 'IX'];
   curves = ['25519', '448'];
   ciphers = ['ChaChaPoly', 'AESGCM'];
   hashes = ['SHA256', 'SHA512', 'BLAKE2s', 'BLAKE2b'];
@@ -52,6 +52,24 @@
   };
   expected_actions.X = expected_actions.N;
   expected_actions.K = expected_actions.N;
+  expected_actions.NN = {
+    initiator: ['NOISE_ACTION_WRITE_MESSAGE', 'NOISE_ACTION_READ_MESSAGE'],
+    responder: ['NOISE_ACTION_READ_MESSAGE', 'NOISE_ACTION_WRITE_MESSAGE']
+  };
+  expected_actions.NK = expected_actions.NN;
+  expected_actions.NX = expected_actions.NN;
+  expected_actions.XN = {
+    initiator: ['NOISE_ACTION_WRITE_MESSAGE', 'NOISE_ACTION_READ_MESSAGE', 'NOISE_ACTION_WRITE_MESSAGE'],
+    responder: ['NOISE_ACTION_READ_MESSAGE', 'NOISE_ACTION_WRITE_MESSAGE', 'NOISE_ACTION_READ_MESSAGE']
+  };
+  expected_actions.XK = expected_actions.XN;
+  expected_actions.XX = expected_actions.XN;
+  expected_actions.KN = expected_actions.NN;
+  expected_actions.KK = expected_actions.NN;
+  expected_actions.KX = expected_actions.NN;
+  expected_actions.IN = expected_actions.NN;
+  expected_actions.IK = expected_actions.NN;
+  expected_actions.IX = expected_actions.NN;
   lib.ready(function(){
     var i$, ref$, len$;
     for (i$ = 0, len$ = (ref$ = patterns).length; i$ < len$; ++i$) {
@@ -146,7 +164,7 @@
                           }, "Responder Initialize() doesn't throw an error");
                           initiator_actions = expected_actions[pattern].initiator.slice();
                           responder_actions = expected_actions[pattern].responder.slice();
-                          while (action = initiator_actions.shift()) {
+                          initiator_loop: while (action = initiator_actions.shift()) {
                             if (action) {
                               t.equal(initiator_hs.GetAction(), lib.constants[action], "Initiator expected action: " + action);
                             }
@@ -163,6 +181,7 @@
                                   break;
                                 case 'NOISE_ACTION_WRITE_MESSAGE':
                                   t.doesNotThrow(fn2$, "Responder WriteMessage() doesn't throw an error");
+                                  continue initiator_loop;
                                 }
                               }
                               break;

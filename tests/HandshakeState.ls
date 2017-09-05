@@ -10,7 +10,7 @@ test		= require('tape')
 
 patterns			= [
 	'N' 'X' 'K'
-#	'NN' 'NK' 'NX' 'XN' 'XK' 'XX' 'KN' 'KK' 'KX' 'IN' 'IK' 'IX'
+	'NN' 'NK' 'NX' 'XN' 'XK' 'XX' 'KN' 'KK' 'KX' 'IN' 'IK' 'IX'
 ]
 curves				= ['25519' '448'/* 'NewHope'*/]
 ciphers				= ['ChaChaPoly' 'AESGCM']
@@ -49,6 +49,22 @@ expected_actions.N	=
 	responder	: ['NOISE_ACTION_READ_MESSAGE']
 expected_actions.X	= expected_actions.N
 expected_actions.K	= expected_actions.N
+expected_actions.NN	=
+	initiator	: ['NOISE_ACTION_WRITE_MESSAGE' 'NOISE_ACTION_READ_MESSAGE']
+	responder	: ['NOISE_ACTION_READ_MESSAGE' 'NOISE_ACTION_WRITE_MESSAGE']
+expected_actions.NK	= expected_actions.NN
+expected_actions.NX	= expected_actions.NN
+expected_actions.XN	=
+	initiator	: ['NOISE_ACTION_WRITE_MESSAGE' 'NOISE_ACTION_READ_MESSAGE' 'NOISE_ACTION_WRITE_MESSAGE']
+	responder	: ['NOISE_ACTION_READ_MESSAGE' 'NOISE_ACTION_WRITE_MESSAGE' 'NOISE_ACTION_READ_MESSAGE']
+expected_actions.XK	= expected_actions.XN
+expected_actions.XX	= expected_actions.XN
+expected_actions.KN	= expected_actions.NN
+expected_actions.KK	= expected_actions.NN
+expected_actions.KX	= expected_actions.NN
+expected_actions.IN	= expected_actions.NN
+expected_actions.IK	= expected_actions.NN
+expected_actions.IX	= expected_actions.NN
 
 # Convenient for debugging common issues instead of looping through thousands of combinations
 #patterns	= [patterns[0]]
@@ -105,7 +121,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 			initiator_actions	= expected_actions[pattern].initiator.slice()
 			responder_actions	= expected_actions[pattern].responder.slice()
 			var message
-			while action = initiator_actions.shift()
+			:initiator_loop while action = initiator_actions.shift()
 				if action
 					t.equal(initiator_hs.GetAction(), lib.constants[action], "Initiator expected action: #action")
 
@@ -124,10 +140,14 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 									t.doesNotThrow (!->
 										responder_hs.ReadMessage(message)
 									), "Responder ReadMessage() doesn't throw an error"
+
 								case 'NOISE_ACTION_WRITE_MESSAGE'
 									t.doesNotThrow (!->
 										message	:= responder_hs.WriteMessage()
 									), "Responder WriteMessage() doesn't throw an error"
+
+									continue initiator_loop
+
 					case 'NOISE_ACTION_READ_MESSAGE' ''
 						t.doesNotThrow (!->
 							initiator_hs.ReadMessage(message)
