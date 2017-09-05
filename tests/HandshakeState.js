@@ -6,17 +6,20 @@
  * @license   MIT License, see license.txt
  */
 (function(){
-  var randombytes, lib, test, patterns, curves, ciphers, hashes, roles, prologues, psks, plaintexts, static_keys, roles_keys, no_empty_keys;
+  var randombytes, lib, test, one_way_patterns, two_way_patterns, patterns, curves, ciphers, hashes, roles, prologues, psks, ads, plaintexts, static_keys, roles_keys, no_empty_keys;
   randombytes = require('crypto').randomBytes;
   lib = require('..');
   test = require('tape');
-  patterns = ['N', 'X', 'K', 'NN', 'NK', 'NX', 'XN', 'XK', 'XX', 'KN', 'KK', 'KX', 'IN', 'IK', 'IX'];
+  one_way_patterns = ['N', 'X', 'K'];
+  two_way_patterns = ['NN', 'NK', 'NX', 'XN', 'XK', 'XX', 'KN', 'KK', 'KX', 'IN', 'IK', 'IX'];
+  patterns = one_way_patterns.concat(two_way_patterns);
   curves = ['25519', '448'];
   ciphers = ['ChaChaPoly', 'AESGCM'];
   hashes = ['SHA256', 'SHA512', 'BLAKE2s', 'BLAKE2b'];
   roles = ['NOISE_ROLE_INITIATOR', 'NOISE_ROLE_RESPONDER'];
   prologues = [null, new Uint8Array, randombytes(10)];
   psks = [null, new Uint8Array, randombytes(32)];
+  ads = [new Uint8Array, randombytes(256)];
   plaintexts = [new Uint8Array, new Uint8Array(randombytes(10))];
   static_keys = {
     NOISE_ROLE_INITIATOR: {
@@ -59,6 +62,9 @@
     var i$, ref$, len$;
     for (i$ = 0, len$ = (ref$ = patterns).length; i$ < len$; ++i$) {
       (fn$.call(this, ref$[i$]));
+    }
+    for (i$ = 0, len$ = (ref$ = one_way_patterns).length; i$ < len$; ++i$) {
+      (fn1$.call(this, ref$[i$]));
     }
     function fn$(pattern){
       var i$, ref$, len$;
@@ -138,6 +144,136 @@
                         }, "HandshakeState shouldn't be usable after free() is called");
                         t.end();
                       });
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    function fn1$(pattern){
+      var i$, ref$, len$;
+      for (i$ = 0, len$ = (ref$ = curves).length; i$ < len$; ++i$) {
+        (fn$.call(this, ref$[i$]));
+      }
+      function fn$(curve){
+        var i$, ref$, len$;
+        for (i$ = 0, len$ = (ref$ = ciphers).length; i$ < len$; ++i$) {
+          (fn$.call(this, ref$[i$]));
+        }
+        function fn$(cipher){
+          var i$, ref$, len$;
+          for (i$ = 0, len$ = (ref$ = hashes).length; i$ < len$; ++i$) {
+            (fn$.call(this, ref$[i$]));
+          }
+          function fn$(hash){
+            var i$, ref$, len$;
+            for (i$ = 0, len$ = (ref$ = prologues).length; i$ < len$; ++i$) {
+              (fn$.call(this, ref$[i$]));
+            }
+            function fn$(prologue){
+              var i$, ref$, len$;
+              for (i$ = 0, len$ = (ref$ = psks).length; i$ < len$; ++i$) {
+                (fn$.call(this, ref$[i$]));
+              }
+              function fn$(psk){
+                var i$, ref$, len$;
+                for (i$ = 0, len$ = (ref$ = roles_keys).length; i$ < len$; ++i$) {
+                  (fn$.call(this, ref$[i$]));
+                }
+                function fn$(role_key_s){
+                  var i$, ref$, len$;
+                  for (i$ = 0, len$ = (ref$ = roles_keys).length; i$ < len$; ++i$) {
+                    (fn$.call(this, ref$[i$]));
+                  }
+                  function fn$(role_key_rs){
+                    var i$, ref$, len$;
+                    for (i$ = 0, len$ = (ref$ = ads).length; i$ < len$; ++i$) {
+                      (fn$.call(this, ref$[i$]));
+                    }
+                    function fn$(ad){
+                      var i$, ref$, len$;
+                      for (i$ = 0, len$ = (ref$ = plaintexts).length; i$ < len$; ++i$) {
+                        (fn$.call(this, ref$[i$]));
+                      }
+                      function fn$(plaintext){
+                        var protocol_name, prologue_title, psk_title;
+                        if (!role_key_s && no_empty_keys.NOISE_ROLE_INITIATOR.local.test(pattern)) {
+                          return;
+                        }
+                        if (!role_key_rs) {
+                          return;
+                        }
+                        protocol_name = "Noise_" + pattern + "_" + curve + "_" + cipher + "_" + hash;
+                        prologue_title = prologue ? "length " + prologue.length : 'null';
+                        psk_title = psk ? "length " + psk.length : 'null';
+                        test("HandshakeState (one-way pattern): " + protocol_name + ", prologue " + prologue_title + ", psk " + psk_title + ", role_key_s " + role_key_s + ", role_key_rs " + role_key_rs + ", plaintext length " + plaintext.length + ", ad length " + ad.length, function(t){
+                          var initiator_hs, responder_hs, message, initiator_send, initiator_receive, ciphertext, responder_send, responder_receive, plaintext_decrypted;
+                          t.doesNotThrow(function(){
+                            var s, rs;
+                            initiator_hs = new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR);
+                            responder_hs = new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER);
+                            s = role_key_s;
+                            if (s) {
+                              s = static_keys[s]['private'][curve];
+                            }
+                            rs = role_key_rs;
+                            if (rs) {
+                              rs = static_keys[rs]['public'][curve];
+                            }
+                            initiator_hs.Initialize(prologue, s, rs, psk);
+                            s = role_key_rs;
+                            if (s) {
+                              s = static_keys[s]['private'][curve];
+                            }
+                            rs = role_key_s;
+                            if (rs) {
+                              rs = static_keys[rs]['public'][curve];
+                            }
+                            responder_hs.Initialize(prologue, s, rs, psk);
+                          }, "Initialized successfully");
+                          t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_WRITE_MESSAGE, 'Initiator starts with writing message');
+                          t.doesNotThrow(function(){
+                            message = initiator_hs.WriteMessage();
+                          }, "WriteMessage() doesn't throw an error");
+                          t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Initiator is ready to split');
+                          t.doesNotThrow(function(){
+                            var ref$;
+                            ref$ = initiator_hs.Split(), initiator_send = ref$[0], initiator_receive = ref$[1];
+                          }, "Split() doesn't throw an error");
+                          t.ok(initiator_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState');
+                          t.ok(initiator_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState');
+                          initiator_receive.free();
+                          t.throws(function(){
+                            initiator_hs.Initialize(plaintext);
+                          }, "HandshakeState shouldn't be usable after Split() is called");
+                          ciphertext = initiator_send.EncryptWithAd(ad, plaintext);
+                          t.equal(ciphertext.length, plaintext.length + initiator_send._mac_length, 'Ciphertext has expected length');
+                          if (plaintext.length) {
+                            t.notEqual(ciphertext.slice(0, plaintext.length).toString(), plaintext.toString(), 'Ciphertext is not the same as plaintext');
+                          }
+                          initiator_send.free();
+                          t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_READ_MESSAGE, 'Responder starts with reading message');
+                          t.doesNotThrow(function(){
+                            debugger;
+                            responder_hs.ReadMessage(message);
+                          }, "ReadMessage() doesn't throw an error");
+                          t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Responder is ready to split');
+                          t.doesNotThrow(function(){
+                            var ref$;
+                            ref$ = responder_hs.Split(), responder_send = ref$[0], responder_receive = ref$[1];
+                          }, "Split() doesn't throw an error");
+                          t.ok(responder_send instanceof lib.CipherState, 'Element #1 after Split() implements CipherState');
+                          t.ok(responder_receive instanceof lib.CipherState, 'Element #2 after Split() implements CipherState');
+                          responder_send.free();
+                          plaintext_decrypted = responder_receive.DecryptWithAd(ad, ciphertext);
+                          responder_receive.free();
+                          t.equal(plaintext_decrypted.toString(), plaintext.toString(), 'Plaintext decrypted correctly');
+                          t.end();
+                        });
+                      }
                     }
                   }
                 }

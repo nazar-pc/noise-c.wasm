@@ -331,7 +331,7 @@ HandshakeState:: =
 			message.free()
 			message_buffer.free()
 			throw e
-		message_length	= lib._NoiseBuffer_get_size(message)
+		message_length	= lib._NoiseBuffer_get_size(message_buffer)
 		real_message	= message.get().slice(0, message_length)
 		message.free()
 		message_buffer.free()
@@ -355,8 +355,9 @@ HandshakeState:: =
 		try
 			assert_no_error(error, @)
 		catch e
-			payload.free()
-			payload_buffer.free()
+			if payload_needed
+				payload.free()
+				payload_buffer.free()
 			throw e
 		real_payload	= null
 		if payload_needed
