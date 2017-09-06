@@ -226,7 +226,7 @@ gulp
 			'_SymmetricState_get_ck'
 		])
 		# Options that are only specified to optimize resulting file size and basically remove unused features
-		optimize	= "-O2 --closure 1 -s NO_EXIT_RUNTIME=1 -s NO_FILESYSTEM=1 -s EXPORTED_RUNTIME_METHODS=[] -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]"
+		optimize	= "-Oz --llvm-lto 1 --closure 1 -s NO_EXIT_RUNTIME=1 -s NO_FILESYSTEM=1 -s EXPORTED_RUNTIME_METHODS=[] -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]"
 		clang_opts	= "-include #__dirname/src/ed25519_random_and_hash.h -I vendor/include -I vendor/include/noise/keys -I vendor/src -I vendor/src/protocol -I vendor/src/crypto/goldilocks/src/include -I vendor/src/crypto/goldilocks/src/p448 -I vendor/src/crypto/goldilocks/src/p448/arch_32"
 		command		= "EMMAKEN_CFLAGS='#clang_opts' emcc #files src/noise-c.c src/ed25519_random_and_hash.c --js-library src/library_random_bytes.js --post-js src/bytes_allocation.js -o noise-c.js -s MODULARIZE=1 -s EXPORTED_FUNCTIONS='#functions' -s WASM=1 #optimize"
 		exec(command, (error, stdout, stderr) !->
