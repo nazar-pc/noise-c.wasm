@@ -114,7 +114,10 @@
       buffer.free();
       assert_no_error(error, this);
       return plaintext;
-    },
+    }
+    /**
+     * @return {boolean}
+     */,
     Rekey: function(){
       throw 'Not implemented';
     }

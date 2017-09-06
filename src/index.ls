@@ -93,6 +93,9 @@ CipherState:: =
 		buffer.free()
 		assert_no_error(error, @)
 		plaintext
+	/**
+	 * @return {boolean}
+	 */
 	Rekey			: !->
 		# TODO: noise_cipherstate_rekey() is not implemented yet (https://github.com/rweather/noise-c/issues/24)
 		throw 'Not implemented'
