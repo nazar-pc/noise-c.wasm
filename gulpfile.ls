@@ -69,8 +69,6 @@ gulp
 		/**
 		 * There are many functions exposed by the library, but only subset of them is used in production, so the rest are still here, uncomment when/if needed
 		 * for debugging or other purposes
-		 *
-		 * _noise_handshakestate_get_fixed_ephemeral_dh and _noise_handshakestate_get_fixed_hybrid_dh are only used in tests
 		 */
 		functions	= JSON.stringify([
 			'_malloc'
@@ -107,8 +105,8 @@ gulp
 			'_noise_handshakestate_fallback_to'
 			'_noise_handshakestate_free'
 			'_noise_handshakestate_get_action'
-			'_noise_handshakestate_get_fixed_ephemeral_dh'
-			'_noise_handshakestate_get_fixed_hybrid_dh'
+#			'_noise_handshakestate_get_fixed_ephemeral_dh'
+#			'_noise_handshakestate_get_fixed_hybrid_dh'
 #			'_noise_handshakestate_get_handshake_hash'
 			'_noise_handshakestate_get_local_keypair_dh'
 #			'_noise_handshakestate_get_protocol_id'
