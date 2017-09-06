@@ -35,7 +35,12 @@
 	"browser"         : {
 		"./src/randombytes" : "./src/randombytes.browser"
 	},
-	"files"           : [],
+	"files"           : [
+		"dist",
+		"src",
+		"noise-c.js",
+		"noise-c.wasm"
+	],
 	"scripts"         : {
 		"test"   : "tape tests/**/*.js",
 		"vendor" : "git clone https://github.com/rweather/noise-c.git vendor",
