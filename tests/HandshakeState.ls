@@ -210,3 +210,4 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 
 			t.end()
 		)
+# TODO: Fallback tests and tests with known ciphertext
