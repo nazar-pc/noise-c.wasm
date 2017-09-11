@@ -43,28 +43,32 @@ no_empty_keys		=
 	local	: /^[KXI]/
 	# Any one-way pattern or pattern that ends with K, X or I requires responders's static public key
 	remote	: /(^.|[KXI])$/
-expected_actions	= {}
-expected_actions.N	=
-	initiator	: ['NOISE_ACTION_WRITE_MESSAGE']
-	responder	: ['NOISE_ACTION_READ_MESSAGE']
-expected_actions.X	= expected_actions.N
-expected_actions.K	= expected_actions.N
-expected_actions.NN	=
-	initiator	: ['NOISE_ACTION_WRITE_MESSAGE' 'NOISE_ACTION_READ_MESSAGE']
-	responder	: ['NOISE_ACTION_READ_MESSAGE' 'NOISE_ACTION_WRITE_MESSAGE']
-expected_actions.NK	= expected_actions.NN
-expected_actions.NX	= expected_actions.NN
-expected_actions.XN	=
-	initiator	: ['NOISE_ACTION_WRITE_MESSAGE' 'NOISE_ACTION_READ_MESSAGE' 'NOISE_ACTION_WRITE_MESSAGE']
-	responder	: ['NOISE_ACTION_READ_MESSAGE' 'NOISE_ACTION_WRITE_MESSAGE' 'NOISE_ACTION_READ_MESSAGE']
-expected_actions.XK	= expected_actions.XN
-expected_actions.XX	= expected_actions.XN
-expected_actions.KN	= expected_actions.NN
-expected_actions.KK	= expected_actions.NN
-expected_actions.KX	= expected_actions.NN
-expected_actions.IN	= expected_actions.NN
-expected_actions.IK	= expected_actions.NN
-expected_actions.IX	= expected_actions.NN
+roundtrips			=
+	1	:
+		initiator	: ['NOISE_ACTION_WRITE_MESSAGE']
+		responder	: ['NOISE_ACTION_READ_MESSAGE']
+	2	:
+		initiator	: ['NOISE_ACTION_WRITE_MESSAGE' 'NOISE_ACTION_READ_MESSAGE']
+		responder	: ['NOISE_ACTION_READ_MESSAGE' 'NOISE_ACTION_WRITE_MESSAGE']
+	3	:
+		initiator	: ['NOISE_ACTION_WRITE_MESSAGE' 'NOISE_ACTION_READ_MESSAGE' 'NOISE_ACTION_WRITE_MESSAGE']
+		responder	: ['NOISE_ACTION_READ_MESSAGE' 'NOISE_ACTION_WRITE_MESSAGE' 'NOISE_ACTION_READ_MESSAGE']
+expected_actions	=
+	N	: roundtrips.1
+	X	: roundtrips.1
+	K	: roundtrips.1
+	NN	: roundtrips.2
+	NK	: roundtrips.2
+	NX	: roundtrips.2
+	XN	: roundtrips.3
+	XK	: roundtrips.3
+	XX	: roundtrips.3
+	KN	: roundtrips.2
+	KK	: roundtrips.2
+	KX	: roundtrips.2
+	IN	: roundtrips.2
+	IK	: roundtrips.2
+	IX	: roundtrips.2
 
 # Convenient for debugging common issues instead of looping through thousands of combinations
 #patterns	= [patterns[0]]
