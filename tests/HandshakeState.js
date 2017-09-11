@@ -129,7 +129,7 @@
       }, "Preparation goes well");
       t.throws(function(){
         responder_hs.ReadMessage(message, false, true);
-      }, "Responder ReadMessage() throws an error because of different prologue");
+      }, Error, "Responder ReadMessage() throws an error because of different prologue");
       t.doesNotThrow(function(){
         responder_hs.FallbackTo(lib.constants.NOISE_PATTERN_XX_FALLBACK);
         responder_hs.Initialize(known_prologue);
@@ -295,7 +295,7 @@
                           t.ok(initiator_receive instanceof lib.CipherState, 'Initiator Element #2 after Split() implements CipherState');
                           t.throws(function(){
                             initiator_hs.Initialize(plaintext);
-                          }, "Initiator HandshakeState shouldn't be usable after Split() is called");
+                          }, Error, "Initiator HandshakeState shouldn't be usable after Split() is called");
                           t.doesNotThrow(function(){
                             var ref$;
                             ref$ = responder_hs.Split(), responder_send = ref$[0], responder_receive = ref$[1];
@@ -304,7 +304,7 @@
                           t.ok(responder_receive instanceof lib.CipherState, 'Responder Element #2 after Split() implements CipherState');
                           t.throws(function(){
                             responder_hs.Initialize(plaintext);
-                          }, "Responder HandshakeState shouldn't be usable after Split() is called");
+                          }, Error, "Responder HandshakeState shouldn't be usable after Split() is called");
                           ciphertext = initiator_send.EncryptWithAd(ad, plaintext);
                           t.equal(ciphertext.length, plaintext.length + initiator_send._mac_length, 'Initiator ciphertext has expected length');
                           if (plaintext.length) {

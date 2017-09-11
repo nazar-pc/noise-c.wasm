@@ -69,7 +69,7 @@
             cs1.free();
             t.throws(function(){
               cs1.EncryptWithAd(new Uint8Array, plaintext);
-            }, "CipherState shouldn't be usable after free() is called");
+            }, Error, "CipherState shouldn't be usable after free() is called");
             cs2 = new lib.CipherState(lib.constants[cipher]);
             cs2.InitializeKey(key);
             t.doesNotThrow(function(){

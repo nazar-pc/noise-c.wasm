@@ -97,7 +97,7 @@
                 ss1.free();
                 t.throws(function(){
                   ss1.EncryptAndHash(new Uint8Array, plaintext);
-                }, "SymmetricState() shouldn't be usable after free() is called");
+                }, Error, "SymmetricState() shouldn't be usable after free() is called");
                 ss2 = new lib.SymmetricState(protocol_name);
                 ss2.MixKey(random1);
                 ss2.MixHash(random2);
@@ -123,7 +123,7 @@
                 cs2.free();
                 t.throws(function(){
                   ss3.EncryptAndHash(plaintext);
-                }, "SymmetricState shouldn't be usable after Split() is called");
+                }, Error, "SymmetricState shouldn't be usable after Split() is called");
                 t.end();
               });
             }

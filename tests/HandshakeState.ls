@@ -178,7 +178,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 
 			t.throws (!->
 				initiator_hs.Initialize(plaintext)
-			), "Initiator HandshakeState shouldn't be usable after Split() is called"
+			), Error, "Initiator HandshakeState shouldn't be usable after Split() is called"
 
 			var responder_send, responder_receive
 			t.doesNotThrow (!->
@@ -189,7 +189,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 
 			t.throws (!->
 				responder_hs.Initialize(plaintext)
-			), "Responder HandshakeState shouldn't be usable after Split() is called"
+			), Error, "Responder HandshakeState shouldn't be usable after Split() is called"
 
 			# Initiator sends data
 			ciphertext	= initiator_send.EncryptWithAd(ad, plaintext)
@@ -276,7 +276,7 @@ test("HandshakeState: Fallback testing", (t) !->
 	t.throws (!->
 		# IK handshake pattern fails here
 		responder_hs.ReadMessage(message, false, true)
-	), "Responder ReadMessage() throws an error because of different prologue"
+	), Error, "Responder ReadMessage() throws an error because of different prologue"
 
 	t.doesNotThrow (!->
 		# Fallback to XX handshake pattern

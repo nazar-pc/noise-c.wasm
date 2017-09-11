@@ -65,7 +65,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 
 		t.throws (!->
 			ss1.EncryptAndHash(new Uint8Array, plaintext)
-		), "SymmetricState() shouldn't be usable after free() is called"
+		), Error, "SymmetricState() shouldn't be usable after free() is called"
 
 		ss2	= new lib.SymmetricState(protocol_name)
 		ss2.MixKey(random1)
@@ -97,7 +97,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 
 		t.throws (!->
 			ss3.EncryptAndHash(plaintext)
-		), "SymmetricState shouldn't be usable after Split() is called"
+		), Error, "SymmetricState shouldn't be usable after Split() is called"
 
 		t.end()
 	)
