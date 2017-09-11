@@ -289,7 +289,7 @@
    * The HandshakeState object, API is close to the spec: http://noiseprotocol.org/noise.html#the-handshakestate-object
    *
    * NOTE: If you ever get an exception with Error object, whose message is one of constants.NOISE_ERROR_* keys, object is no longer usable and there is no need
-   * to call free() method, as it was called for you automatically already
+   * to call free() method, as it was called for you automatically already (except in ReadMessage with fallback_supported == true)
    *
    * @param {string}	protocol_name	The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
    * @param {number}	initiator		The role for the new object, either constants.NOISE_ROLE_INITIATOR or constants.NOISE_ROLE_RESPONDER
@@ -366,14 +366,15 @@
       return lib._noise_handshakestate_get_action(this._state);
     }
     /**
-     * Might be called when GetAction() returned constants.NOISE_ACTION_FAILED and switching to fallback protocol is desired
+     * Might be called when GetAction() returned constants.NOISE_ACTION_FAILED and switching to fallback protocol is desired, don't forget to call Initialize()
+     * after FallbackTo()
      *
      * @param {number} pattern_id One of constants.NOISE_PATTERN_*_FALLBACK*
      */,
     FallbackTo: function(pattern_id){
       var error;
       pattern_id == null && (pattern_id = constants.NOISE_PATTERN_XX_FALLBACK);
-      error = lib._noise_handshakestate_fallback_to(pattern_id);
+      error = lib._noise_handshakestate_fallback_to(this._state, pattern_id);
       assert_no_error(error, this);
     }
     /**
@@ -411,14 +412,16 @@
       return real_message;
     }
     /**
-     * @param {Uint8Array}	message			Message received from the other side
-     * @param {boolean}		payload_needed	false if the application does not need the message payload
+     * @param {Uint8Array}	message				Message received from the other side
+     * @param {boolean}		payload_needed		false if the application does not need the message payload
+     * @param {boolean}		fallback_supported	true if application is ready to switch to fallback pattern (will throw, but without free() call on read failure)
      *
      * @return {null|Uint8Array}
      */,
-    ReadMessage: function(message, payload_needed){
+    ReadMessage: function(message, payload_needed, fallback_supported){
       var message_buffer, payload_buffer, payload, error, e, real_payload, payload_length;
       payload_needed == null && (payload_needed = false);
+      fallback_supported == null && (fallback_supported = false);
       message = allocate(0, message);
       message_buffer = allocate_buffer(message, message.length);
       payload_buffer = null;
@@ -430,7 +433,7 @@
       message.free();
       message_buffer.free();
       try {
-        assert_no_error(error, this);
+        assert_no_error(error, fallback_supported ? undefined : this);
       } catch (e$) {
         e = e$;
         if (payload_needed) {

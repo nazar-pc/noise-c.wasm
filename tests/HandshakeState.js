@@ -6,10 +6,11 @@
  * @license   MIT License, see license.txt
  */
 (function(){
-  var randombytes, lib, test, patterns, curves, ciphers, hashes, prologues, psks, ads, plaintexts, static_keys, roles_keys, no_empty_keys, roundtrips, expected_actions;
+  var randombytes, lib, test, lib_internal, patterns, curves, ciphers, hashes, prologues, psks, ads, plaintexts, static_keys, roles_keys, no_empty_keys, roundtrip_halves, expected_actions;
   randombytes = require('crypto').randomBytes;
   lib = require('..');
   test = require('tape');
+  lib_internal = require('../noise-c');
   patterns = ['N', 'X', 'K', 'NN', 'NK', 'NX', 'XN', 'XK', 'XX', 'KN', 'KK', 'KX', 'IN', 'IK', 'IX'];
   curves = ['25519', '448'];
   ciphers = ['ChaChaPoly', 'AESGCM'];
@@ -45,7 +46,7 @@
     local: /^[KXI]/,
     remote: /(^.|[KXI])$/
   };
-  roundtrips = {
+  roundtrip_halves = {
     1: {
       initiator: ['NOISE_ACTION_WRITE_MESSAGE'],
       responder: ['NOISE_ACTION_READ_MESSAGE']
@@ -60,27 +61,108 @@
     }
   };
   expected_actions = {
-    N: roundtrips[1],
-    X: roundtrips[1],
-    K: roundtrips[1],
-    NN: roundtrips[2],
-    NK: roundtrips[2],
-    NX: roundtrips[2],
-    XN: roundtrips[3],
-    XK: roundtrips[3],
-    XX: roundtrips[3],
-    KN: roundtrips[2],
-    KK: roundtrips[2],
-    KX: roundtrips[2],
-    IN: roundtrips[2],
-    IK: roundtrips[2],
-    IX: roundtrips[2]
+    N: roundtrip_halves[1],
+    X: roundtrip_halves[1],
+    K: roundtrip_halves[1],
+    NN: roundtrip_halves[2],
+    NK: roundtrip_halves[2],
+    NX: roundtrip_halves[2],
+    XN: roundtrip_halves[3],
+    XK: roundtrip_halves[3],
+    XX: roundtrip_halves[3],
+    KN: roundtrip_halves[2],
+    KK: roundtrip_halves[2],
+    KX: roundtrip_halves[2],
+    IN: roundtrip_halves[2],
+    IK: roundtrip_halves[2],
+    IX: roundtrip_halves[2]
   };
   lib.ready(function(){
-    var i$, ref$, len$;
+    var i$, ref$, len$, known_prologue, known_plaintext, known_ad, fixed_ephemeral, initiator_ciphertext, responder_ciphertext;
     for (i$ = 0, len$ = (ref$ = patterns).length; i$ < len$; ++i$) {
       (fn$.call(this, ref$[i$]));
     }
+    known_prologue = Uint8Array.of(43, 32, 195, 206, 138, 156, 161, 18, 151, 93);
+    known_plaintext = Uint8Array.of(57, 250, 199, 143, 113, 176, 210, 75, 100, 38);
+    known_ad = Uint8Array.of(240, 104, 34, 55, 185, 175, 63, 127, 129, 111);
+    fixed_ephemeral = Uint8Array.of(127, 210, 108, 139, 138, 13, 92, 152, 200, 95, 249, 202, 29, 123, 198, 109, 120, 87, 139, 159, 44, 76, 23, 8, 80, 116, 139, 39, 153, 39, 103, 230, 234, 108, 201, 153, 42, 86, 28, 157, 25, 223, 195, 66, 226, 96, 194, 128, 239, 79, 63, 155, 143, 135, 157, 78);
+    initiator_ciphertext = Uint8Array.of(95, 85, 166, 4, 191, 171, 103, 202, 218, 205, 57, 60, 42, 43, 221, 13, 179, 231, 27, 58, 170, 168, 114, 58, 107, 19);
+    responder_ciphertext = Uint8Array.of(172, 42, 69, 220, 217, 91, 2, 152, 7, 238, 167, 34, 157, 21, 242, 97, 46, 236, 129, 73, 50, 199, 252, 69, 12, 118);
+    function set_fixed_ephemeral(hs){
+      var dh, s, error;
+      dh = lib_internal._noise_handshakestate_get_fixed_ephemeral_dh(hs._state);
+      if (dh) {
+        s = lib_internal.allocateBytes(0, fixed_ephemeral);
+        error = lib_internal._noise_dhstate_set_keypair_private(dh, s, s.length);
+        s.free();
+        if (error !== lib.constants.NOISE_ERROR_NONE) {
+          throw new Error(error);
+        }
+      }
+      dh = lib_internal._noise_handshakestate_get_fixed_hybrid_dh(hs._state);
+      if (dh) {
+        s = lib_internal.allocateBytes(0, fixed_ephemeral);
+        error = lib_internal._noise_dhstate_set_keypair_private(dh, s, s.length);
+        s.free();
+        if (error !== lib.constants.NOISE_ERROR_NONE) {
+          throw new Error(error);
+        }
+      }
+    }
+    test("HandshakeState: Fallback testing", function(t){
+      var initiator_hs, responder_hs, message, initiator_send, initiator_receive, responder_send, responder_receive, ciphertext, plaintext_decrypted;
+      t.doesNotThrow(function(){
+        initiator_hs = new lib.HandshakeState('Noise_IK_448_ChaChaPoly_BLAKE2b', lib.constants.NOISE_ROLE_INITIATOR);
+        responder_hs = new lib.HandshakeState('Noise_IK_448_ChaChaPoly_BLAKE2b', lib.constants.NOISE_ROLE_RESPONDER);
+        set_fixed_ephemeral(initiator_hs);
+        set_fixed_ephemeral(responder_hs);
+        initiator_hs.Initialize(known_prologue, static_keys.NOISE_ROLE_INITIATOR['private'][448], static_keys.NOISE_ROLE_RESPONDER['public'][448]);
+        responder_hs.Initialize(randombytes(10), static_keys.NOISE_ROLE_RESPONDER['private'][448], static_keys.NOISE_ROLE_RESPONDER['public'][448]);
+        t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_WRITE_MESSAGE, "Initiator expected action: NOISE_ACTION_WRITE_MESSAGE");
+        message = initiator_hs.WriteMessage();
+        t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_READ_MESSAGE, "Initiator expected action: NOISE_ACTION_READ_MESSAGE");
+        t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_READ_MESSAGE, "Responder expected action: NOISE_ACTION_READ_MESSAGE");
+      }, "Preparation goes well");
+      t.throws(function(){
+        responder_hs.ReadMessage(message, false, true);
+      }, "Responder ReadMessage() throws an error because of different prologue");
+      t.doesNotThrow(function(){
+        responder_hs.FallbackTo(lib.constants.NOISE_PATTERN_XX_FALLBACK);
+        responder_hs.Initialize(known_prologue);
+      }, "Responder FallbackTo() and Initialize() doesn't throw an error");
+      t.doesNotThrow(function(){
+        var ref$;
+        t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_WRITE_MESSAGE, "Responder expected action: NOISE_ACTION_WRITE_MESSAGE");
+        message = responder_hs.WriteMessage();
+        t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_READ_MESSAGE, "Responder expected action: NOISE_ACTION_READ_MESSAGE");
+        t.doesNotThrow(function(){
+          initiator_hs.FallbackTo(lib.constants.NOISE_PATTERN_XX_FALLBACK);
+          initiator_hs.Initialize();
+        }, "Initiator FallbackTo() and Initialize() doesn't throw an error");
+        t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_READ_MESSAGE, "Initiator expected action: NOISE_ACTION_READ_MESSAGE");
+        initiator_hs.ReadMessage(message);
+        t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_WRITE_MESSAGE, "Initiator expected action: NOISE_ACTION_WRITE_MESSAGE");
+        message = initiator_hs.WriteMessage();
+        t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, "Initiator expected action: NOISE_ACTION_SPLIT");
+        responder_hs.ReadMessage(message);
+        t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, "Responder expected action: NOISE_ACTION_SPLIT");
+        ref$ = initiator_hs.Split(), initiator_send = ref$[0], initiator_receive = ref$[1];
+        ref$ = responder_hs.Split(), responder_send = ref$[0], responder_receive = ref$[1];
+      }, "The rest goes well too");
+      ciphertext = initiator_send.EncryptWithAd(known_ad, known_plaintext);
+      t.equal(ciphertext.toString(), initiator_ciphertext.toString(), "Initiator plaintext encrypted correctly");
+      initiator_send.free();
+      plaintext_decrypted = responder_receive.DecryptWithAd(known_ad, ciphertext);
+      responder_receive.free();
+      t.equal(plaintext_decrypted.toString(), known_plaintext.toString(), 'Responder plaintext decrypted correctly');
+      ciphertext = responder_send.EncryptWithAd(known_ad, known_plaintext);
+      t.equal(ciphertext.toString(), responder_ciphertext.toString(), 'Responder plaintext encrypted correctly');
+      responder_send.free();
+      plaintext_decrypted = initiator_receive.DecryptWithAd(known_ad, ciphertext);
+      initiator_receive.free();
+      t.equal(plaintext_decrypted.toString(), known_plaintext.toString(), 'Initiator plaintext decrypted correctly');
+      t.end();
+    });
     function fn$(pattern){
       var i$, ref$, len$;
       for (i$ = 0, len$ = (ref$ = curves).length; i$ < len$; ++i$) {
