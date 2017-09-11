@@ -14,37 +14,37 @@
   curves = ['25519', '448', 'NewHope'];
   ciphers = ['ChaChaPoly', 'AESGCM'];
   hashes = ['SHA256', 'SHA512', 'BLAKE2s', 'BLAKE2b'];
-  plaintexts = [new Uint8Array, new Uint8Array(randombytes(10))];
+  plaintexts = [new Uint8Array, Uint8Array.from(randombytes(10))];
   random1 = randombytes(32);
   random2 = randombytes(64);
   random3 = randombytes(128);
   lib.ready(function(){
-    var i$, ref$, len$;
+    var i$, ref$, len$, protocol_name, key, known_plaintext, known_ciphertext, random1, random2, random3;
     for (i$ = 0, len$ = (ref$ = patterns).length; i$ < len$; ++i$) {
       (fn$.call(this, ref$[i$]));
     }
+    protocol_name = "Noise_N_448_ChaChaPoly_BLAKE2b";
+    key = Buffer.from('672caf1690343dd69a993cea46901622f0140709b3f0f3c543f6ec9393a47a46', 'hex');
+    known_plaintext = Buffer.from('2fb6c173fdf9a0dfbaa5', 'hex');
+    known_ciphertext = Buffer.from('472c69a4b2dacd0b4f4c0ff98d113aac2f52c533622f9710345f', 'hex');
+    random1 = Buffer.from('329f3e489d464f629baa2ed17daf14e0', 'hex');
+    random2 = Buffer.from('a3297da8389fe404a843fbffcf32e39fdcb324a1d1b81f5aba875bc79652f318', 'hex');
+    random3 = Buffer.from('fce9bea6a335d78fb7f3f7ddda156d257e33c98c42c3bc873fd628e171428dd9', 'hex');
     test('SymmetricState: Check for encryption correctness', function(t){
-      var protocol_name, key, known_plaintext, known_ciphertext, random1, random2, random3, ss1, ciphertext, ss2, plaintext;
-      protocol_name = "Noise_N_448_ChaChaPoly_BLAKE2b";
-      key = Uint8Array.of(103, 44, 175, 22, 144, 52, 61, 214, 154, 153, 60, 234, 70, 144, 22, 34, 240, 20, 7, 9, 179, 240, 243, 197, 67, 246, 236, 147, 147, 164, 122, 70);
-      known_plaintext = Uint8Array.of(47, 182, 193, 115, 253, 249, 160, 223, 186, 165);
-      known_ciphertext = Uint8Array.of(71, 44, 105, 164, 178, 218, 205, 11, 79, 76, 15, 249, 141, 17, 58, 172, 47, 82, 197, 51, 98, 47, 151, 16, 52, 95);
-      random1 = Uint8Array.of(50, 159, 62, 72, 157, 70, 79, 98, 155, 170, 46, 209, 125, 175, 20, 224);
-      random2 = Uint8Array.of(163, 41, 125, 168, 56, 159, 228, 4, 168, 67, 251, 255, 207, 50, 227, 159, 220, 179, 36, 161, 209, 184, 31, 90, 186, 135, 91, 199, 150, 82, 243, 24);
-      random3 = Uint8Array.of(252, 233, 190, 166, 163, 53, 215, 143, 183, 243, 247, 221, 218, 21, 109, 37, 126, 51, 201, 140, 66, 195, 188, 135, 63, 214, 40, 225, 113, 66, 141, 217);
+      var ss1, ciphertext, ss2, plaintext;
       ss1 = new lib.SymmetricState(protocol_name);
       ss1.MixKey(random1);
       ss1.MixHash(random2);
       ss1.MixKeyAndHash(random3);
       ciphertext = ss1.EncryptAndHash(known_plaintext);
-      t.equal(known_ciphertext.toString(), ciphertext.toString(), 'Encrypted correctly');
+      t.equal(ciphertext.toString(), Uint8Array.from(known_ciphertext).toString(), 'Encrypted correctly');
       ss1.free();
       ss2 = new lib.SymmetricState(protocol_name);
       ss2.MixKey(random1);
       ss2.MixHash(random2);
       ss2.MixKeyAndHash(random3);
       plaintext = ss2.DecryptAndHash(known_ciphertext);
-      t.equal(known_plaintext.toString(), plaintext.toString(), 'Decrypted correctly');
+      t.equal(plaintext.toString(), Uint8Array.from(known_plaintext).toString(), 'Decrypted correctly');
       ss2.free();
       t.end();
     });

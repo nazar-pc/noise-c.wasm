@@ -9,7 +9,7 @@ lib			= require('..')
 test		= require('tape')
 
 ciphers		= ['NOISE_CIPHER_CHACHAPOLY', 'NOISE_CIPHER_AESGCM']
-plaintexts	= [new Uint8Array, new Uint8Array(randombytes(10))]
+plaintexts	= [new Uint8Array, Uint8Array.from(randombytes(10))]
 ads			= [new Uint8Array, randombytes(256)]
 key			= randombytes(32)
 
@@ -76,23 +76,23 @@ for let cipher in ciphers => for let plaintext in plaintexts => for let ad in ad
 		t.end()
 	)
 
-test('CipherState: Check for encryption correctness', (t) !->
-	cipher				= lib.constants.NOISE_CIPHER_CHACHAPOLY
-	ad					= new Uint8Array
-	key					= Uint8Array.of(103 44 175 22 144 52 61 214 154 153 60 234 70 144 22 34 240 20 7 9 179 240 243 197 67 246 236 147 147 164 122 70)
-	known_plaintext		= Uint8Array.of(47 182 193 115 253 249 160 223 186 165)
-	known_ciphertext	= Uint8Array.of(145 212 107 212 117 149 140 158 46 200 171 170 183 117 123 234 129 120 71 131 80 10 198 232 254 35)
+cipher				= lib.constants.NOISE_CIPHER_CHACHAPOLY
+ad					= new Uint8Array
+key					= Buffer.from('672caf1690343dd69a993cea46901622f0140709b3f0f3c543f6ec9393a47a46', 'hex')
+known_plaintext		= Buffer.from('2fb6c173fdf9a0dfbaa5', 'hex')
+known_ciphertext	= Buffer.from('91d46bd475958c9e2ec8abaab7757bea81784783500ac6e8fe23', 'hex')
 
+test('CipherState: Check for encryption correctness', (t) !->
 	cs1					= new lib.CipherState(cipher)
 	cs1.InitializeKey(key)
 	ciphertext			= cs1.EncryptWithAd(ad, known_plaintext)
-	t.equal(known_ciphertext.toString(), ciphertext.toString(), 'Encrypted correctly')
+	t.equal(ciphertext.toString(), Uint8Array.from(known_ciphertext).toString(), 'Encrypted correctly')
 	cs1.free()
 
 	cs2					= new lib.CipherState(cipher)
 	cs2.InitializeKey(key)
 	plaintext			= cs2.DecryptWithAd(ad, known_ciphertext)
-	t.equal(known_plaintext.toString(), plaintext.toString(), 'Decrypted correctly')
+	t.equal(plaintext.toString(), Uint8Array.from(known_plaintext).toString(), 'Decrypted correctly')
 	cs2.free()
 
 	t.end()
