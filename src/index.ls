@@ -108,11 +108,14 @@ CipherState:: =
 		delete @_mac_length
 		assert_no_error(error)
 
+Object.defineProperty(CipherState::, 'constructor', {enumerable: false, value: CipherState})
+
 !function CipherState_split (state)
 	@_state			= state
 	@_mac_length	= lib._noise_cipherstate_get_mac_length(@_state)
 
 CipherState_split:: = Object.create(CipherState::)
+
 Object.defineProperty(CipherState_split::, 'constructor', {enumerable: false, value: CipherState_split})
 
 /**
@@ -238,6 +241,8 @@ SymmetricState:: =
 		delete @_state
 		delete @_mac_length
 		assert_no_error(error)
+
+Object.defineProperty(SymmetricState::, 'constructor', {enumerable: false, value: SymmetricState})
 
 /**
  * The HandshakeState object, API is close to the spec: http://noiseprotocol.org/noise.html#the-handshakestate-object
@@ -404,3 +409,5 @@ HandshakeState:: =
 		error	= lib._noise_handshakestate_free(@_state)
 		delete @_state
 		assert_no_error(error)
+
+Object.defineProperty(HandshakeState::, 'constructor', {enumerable: false, value: HandshakeState})

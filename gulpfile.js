@@ -6,11 +6,10 @@
  * @license   MIT License, see license.txt
  */
 (function(){
-  var browserify, del, exec, fs, glob, gulp, rename, tap, uglify, DESTINATION;
+  var browserify, del, exec, glob, gulp, rename, tap, uglify, DESTINATION;
   browserify = require('browserify');
   del = require('del');
   exec = require('child_process').exec;
-  fs = require('fs');
   glob = require('glob');
   gulp = require('gulp');
   rename = require('gulp-rename');

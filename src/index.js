@@ -132,6 +132,10 @@
       assert_no_error(error);
     }
   };
+  Object.defineProperty(CipherState.prototype, 'constructor', {
+    enumerable: false,
+    value: CipherState
+  });
   function CipherState_split(state){
     this._state = state;
     this._mac_length = lib._noise_cipherstate_get_mac_length(this._state);
@@ -285,6 +289,10 @@
       assert_no_error(error);
     }
   };
+  Object.defineProperty(SymmetricState.prototype, 'constructor', {
+    enumerable: false,
+    value: SymmetricState
+  });
   /**
    * The HandshakeState object, API is close to the spec: http://noiseprotocol.org/noise.html#the-handshakestate-object
    *
@@ -495,4 +503,8 @@
       assert_no_error(error);
     }
   };
+  Object.defineProperty(HandshakeState.prototype, 'constructor', {
+    enumerable: false,
+    value: HandshakeState
+  });
 }).call(this);

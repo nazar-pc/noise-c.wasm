@@ -7,7 +7,6 @@
 browserify	= require('browserify')
 del			= require('del')
 exec		= require('child_process').exec
-fs			= require('fs')
 glob		= require('glob')
 gulp		= require('gulp')
 rename		= require('gulp-rename')
