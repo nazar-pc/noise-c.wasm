@@ -64,14 +64,14 @@ for let cipher in ciphers => for let plaintext in plaintexts => for let ad in ad
 		t.throws (!->
 			cs3.DecryptWithAd(randombytes(256), ciphertext)
 		), Error, 'Plaintext decryption with incorrect additional data fails'
-		# No need to call free(), since we've failed during last call
+		cs3.free()
 
 		cs4	= new lib.CipherState(lib.constants[cipher])
 		cs4.InitializeKey(key)
 		t.throws (!->
 			cs4.DecryptWithAd(ad, randombytes(256))
 		), Error, 'Plaintext decryption with incorrect ciphertext fails'
-		# No need to call free(), since we've failed during last call
+		cs4.free()
 
 		t.end()
 	)

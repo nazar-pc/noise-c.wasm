@@ -84,11 +84,13 @@
             t.throws(function(){
               cs3.DecryptWithAd(randombytes(256), ciphertext);
             }, Error, 'Plaintext decryption with incorrect additional data fails');
+            cs3.free();
             cs4 = new lib.CipherState(lib.constants[cipher]);
             cs4.InitializeKey(key);
             t.throws(function(){
               cs4.DecryptWithAd(ad, randombytes(256));
             }, Error, 'Plaintext decryption with incorrect ciphertext fails');
+            cs4.free();
             t.end();
           });
         }

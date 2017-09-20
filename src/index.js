@@ -47,7 +47,7 @@
    * The CipherState object, API is close to the spec: http://noiseprotocol.org/noise.html#the-cipherstate-object
    *
    * NOTE: If you ever get an exception with Error object, whose message is one of constants.NOISE_ERROR_* keys, object is no longer usable and there is no need
-   * to call free() method, as it was called for you automatically already
+   * to call free() method, as it was called for you automatically already (except in EncryptWithAd and DecryptWithAd)
    *
    * @param {string} cipher constants.NOISE_CIPHER_CHACHAPOLY, constants.NOISE_CIPHER_AESGCM, etc.
    */
@@ -93,7 +93,7 @@
       ad.free();
       plaintext.free();
       buffer.free();
-      assert_no_error(error, this);
+      assert_no_error(error);
       return ciphertext;
     }
     /**
@@ -112,7 +112,7 @@
       ad.free();
       ciphertext.free();
       buffer.free();
-      assert_no_error(error, this);
+      assert_no_error(error);
       return plaintext;
     }
     /**
