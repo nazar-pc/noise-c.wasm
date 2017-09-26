@@ -6,6 +6,6 @@
  */
 mergeInto(LibraryManager.library, {
 	noise_rand_bytes	: (offset, size) !->
-		randombytes	= require('randombytes')
+		randombytes	= require('./src/randombytes')
 		HEAPU8.set(randombytes(size), offset)
 })
