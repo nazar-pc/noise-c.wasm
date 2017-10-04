@@ -14,7 +14,8 @@
     constants: constants,
     CipherState: CipherState,
     SymmetricState: SymmetricState,
-    HandshakeState: HandshakeState
+    HandshakeState: HandshakeState,
+    _lib_internal: lib
   };
   allocate = lib.allocateBytes;
   allocate_pointer = lib.allocatePointer;

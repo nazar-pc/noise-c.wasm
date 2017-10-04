@@ -7,7 +7,7 @@
 constants	= require('./constants')
 lib			= require('../noise-c')()
 
-module.exports = {ready: lib.then, constants, CipherState, SymmetricState, HandshakeState}
+module.exports = {ready : lib.then, constants, CipherState, SymmetricState, HandshakeState, _lib_internal : lib}
 
 allocate			= lib.allocateBytes
 allocate_pointer	= lib.allocatePointer

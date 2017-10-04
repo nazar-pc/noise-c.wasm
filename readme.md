@@ -13,12 +13,6 @@ This project basically does 2 things:
 
 When reading LiveScript code make sure to configure 1 tab to be 4 spaces (GitHub uses 8 by default), otherwise code might be hard to read.
 
-## Current status
-
-API should be near stable and unlikely to change.
-
-Still considered unstable, so be careful and make sure to report any issues you encounter. Project is covered with a lot of tests though to ensure it works as intended (see `tests` directory).
-
 ## API
 
 ### lib.ready(callback)

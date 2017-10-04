@@ -6,8 +6,7 @@
  */
 fs				= require('fs')
 lib				= require('..')
-# Should be require()(), but https://github.com/kripken/emscripten/issues/5568
-lib_internal	= require('../noise-c')#()
+lib_internal	= lib._lib_internal
 randombytes		= require('crypto').randomBytes
 test			= require('tape')
 
