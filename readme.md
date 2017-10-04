@@ -13,6 +13,11 @@ This project basically does 2 things:
 
 When reading LiveScript code make sure to configure 1 tab to be 4 spaces (GitHub uses 8 by default), otherwise code might be hard to read.
 
+## How to install
+```
+npm install noise-c.wasm
+```
+
 ## API
 
 ### lib.ready(callback)
