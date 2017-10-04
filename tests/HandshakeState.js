@@ -6,11 +6,11 @@
  * @license   MIT License, see license.txt
  */
 (function(){
-  var randombytes, lib, test, lib_internal, patterns, curves, ciphers, hashes, prologues, psks, ads, plaintexts, static_keys, roles_keys, no_empty_keys, roundtrip_halves, expected_actions;
-  randombytes = require('crypto').randomBytes;
+  var lib, lib_internal, randombytes, test, patterns, curves, ciphers, hashes, prologues, psks, ads, plaintexts, static_keys, roles_keys, no_empty_keys, roundtrip_halves, expected_actions;
   lib = require('..');
-  test = require('tape');
   lib_internal = require('../noise-c');
+  randombytes = require('crypto').randomBytes;
+  test = require('tape');
   patterns = ['N', 'X', 'K', 'NN', 'NK', 'NX', 'XN', 'XK', 'XX', 'KN', 'KK', 'KX', 'IN', 'IK', 'IX'];
   curves = ['25519', '448', 'NewHope'];
   ciphers = ['ChaChaPoly', 'AESGCM'];
@@ -328,13 +328,13 @@
                             message = initiator_hs.WriteMessage();
                           }
                           function fn1$(){
-                            responder_hs.ReadMessage(message);
+                            responder_hs.ReadMessage(message, true);
                           }
                           function fn2$(){
                             message = responder_hs.WriteMessage();
                           }
                           function fn3$(){
-                            initiator_hs.ReadMessage(message);
+                            initiator_hs.ReadMessage(message, true);
                           }
                         });
                       }

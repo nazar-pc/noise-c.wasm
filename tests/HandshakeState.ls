@@ -4,11 +4,11 @@
  * @copyright Copyright (c) 2017, Nazar Mokrynskyi
  * @license   MIT License, see license.txt
  */
-randombytes		= require('crypto').randomBytes
 lib				= require('..')
-test			= require('tape')
 # Should be require()(), but https://github.com/kripken/emscripten/issues/5568
 lib_internal	= require('../noise-c')#()
+randombytes		= require('crypto').randomBytes
+test			= require('tape')
 
 patterns			= [
 	'N' 'X' 'K'
@@ -151,7 +151,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 							switch action
 								case 'NOISE_ACTION_READ_MESSAGE'
 									t.doesNotThrow (!->
-										responder_hs.ReadMessage(message)
+										responder_hs.ReadMessage(message, true)
 									), "Responder ReadMessage() doesn't throw an error"
 
 								case 'NOISE_ACTION_WRITE_MESSAGE'
@@ -163,7 +163,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 
 					case 'NOISE_ACTION_READ_MESSAGE' ''
 						t.doesNotThrow (!->
-							initiator_hs.ReadMessage(message)
+							initiator_hs.ReadMessage(message, true)
 						), "Initiator ReadMessage() doesn't throw an error"
 
 			t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Initiator is ready to split')

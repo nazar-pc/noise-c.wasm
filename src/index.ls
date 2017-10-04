@@ -352,13 +352,13 @@ HandshakeState:: =
 	 *
 	 * @return {null|Uint8Array}
 	 */
-	ReadMessage		: (message, payload_needed = false, fallback_supported = false) !->
+	ReadMessage		: (message, payload_needed = false, fallback_supported = false) ->
 		message			= allocate(0, message)
 		message_buffer	= allocate_buffer(message, message.length)
 		payload_buffer	= null
 		if payload_needed
 			payload			= allocate(constants.NOISE_MAX_PAYLOAD_LEN)
-			payload_buffer	= allocate_buffer(payload_buffer)
+			payload_buffer	= allocate_buffer(payload, payload.length)
 		error			= lib._noise_handshakestate_read_message(@_state, message_buffer, payload_buffer)
 		message.free()
 		message_buffer.free()
@@ -371,7 +371,7 @@ HandshakeState:: =
 			throw e
 		real_payload	= null
 		if payload_needed
-			payload_length	= lib._NoiseBuffer_get_size(payload)
+			payload_length	= lib._NoiseBuffer_get_size(payload_buffer)
 			real_payload	= payload.get().slice(0, payload_length)
 			payload.free()
 			payload_buffer.free()

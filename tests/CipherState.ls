@@ -4,8 +4,8 @@
  * @copyright Copyright (c) 2017, Nazar Mokrynskyi
  * @license   MIT License, see license.txt
  */
-randombytes	= require('crypto').randomBytes
 lib			= require('..')
+randombytes	= require('crypto').randomBytes
 test		= require('tape')
 
 ciphers		= ['NOISE_CIPHER_CHACHAPOLY', 'NOISE_CIPHER_AESGCM']

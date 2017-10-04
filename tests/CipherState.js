@@ -6,9 +6,9 @@
  * @license   MIT License, see license.txt
  */
 (function(){
-  var randombytes, lib, test, ciphers, plaintexts, ads, key;
-  randombytes = require('crypto').randomBytes;
+  var lib, randombytes, test, ciphers, plaintexts, ads, key;
   lib = require('..');
+  randombytes = require('crypto').randomBytes;
   test = require('tape');
   ciphers = ['NOISE_CIPHER_CHACHAPOLY', 'NOISE_CIPHER_AESGCM'];
   plaintexts = [new Uint8Array, Uint8Array.from(randombytes(10))];
