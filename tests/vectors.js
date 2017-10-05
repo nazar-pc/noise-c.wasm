@@ -48,7 +48,7 @@
     return handshake_hash;
   }
   function process_test_vectors(filename){
-    return test("Testing " + filename, function(t){
+    test("Testing " + filename, function(t){
       var vectors, i$, len$;
       vectors = JSON.parse(fs.readFileSync(filename)).vectors;
       for (i$ = 0, len$ = vectors.length; i$ < len$; ++i$) {
@@ -165,7 +165,7 @@
     c1init.free();
     c2init.free();
     c1resp.free();
-    return c2resp.free();
+    c2resp.free();
     function fn$(){
       recv.ReadMessage(ciphertext, true, true);
     }

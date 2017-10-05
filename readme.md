@@ -1,7 +1,7 @@
 # noise-c.wasm
-[rweather/noise-c](https://github.com/rweather/noise-c) compiled to WebAssembly using Emscripten and optimized for small size
+[rweather/noise-c](https://github.com/rweather/noise-c) compiled to WebAssembly using Emscripten and optimized for small size.
 
-Noise protocol implementation that works both in Node.js and in modern browsers.
+[Noise protocol](https://noiseprotocol.org/) implementation that works both in Node.js and in modern browsers.
 
 ## Supported Patterns and Algorithms
 The same as in noise-c: https://rweather.github.io/noise-c/index.html#algorithms

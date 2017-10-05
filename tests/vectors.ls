@@ -58,7 +58,7 @@ function get_handshake_hash (hs, length)
 		throw new Error(error)
 	handshake_hash
 
-function process_test_vectors (filename)
+!function process_test_vectors (filename)
 	test("Testing #filename", (t) !->
 		vectors		= JSON.parse(fs.readFileSync(filename)).vectors
 		for let vector, i in vectors
@@ -74,7 +74,7 @@ function process_test_vectors (filename)
 			)
 	)
 
-function test_vector_run (t, vector)
+!function test_vector_run (t, vector)
 	is_one_way		= one_way_pattern_regexp.test(vector.pattern_name)
 	fallback		= vector.fallback
 	compare			= t~equal
