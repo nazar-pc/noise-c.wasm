@@ -63,27 +63,27 @@ function get_handshake_hash (hs, length)
 		vectors		= JSON.parse(fs.readFileSync(filename)).vectors
 		for let vector, i in vectors
 			# TODO: Remove when noise-c imports newer vectors
-			if !vector.pattern_name
-				psk					= if vector.init_psk || vector.resp_psk then 'PSK' else ''
-				dh2					= if vector.hybrid then "+#{vector.hybrid}" else ''
-				vector.pattern_name	= "Noise#{psk}_#{vector.pattern}_#{vector.dh}#{dh2}_#{vector.cipher}_#{vector.hash}"
+			if !vector.protocol_name
+				psk						= if vector.init_psk || vector.resp_psk then 'PSK' else ''
+				dh2						= if vector.hybrid then "+#{vector.hybrid}" else ''
+				vector.protocol_name	= "Noise#{psk}_#{vector.pattern}_#{vector.dh}#{dh2}_#{vector.cipher}_#{vector.hash}"
 
-			t.test("Vector index: #i, pattern #{vector.name} #{vector.pattern_name}", (t) !->
+			t.test("Vector index: #i, pattern #{vector.name} #{vector.protocol_name}", (t) !->
 				test_vector_run(t, vector)
 				t.end()
 			)
 	)
 
 !function test_vector_run (t, vector)
-	is_one_way		= one_way_pattern_regexp.test(vector.pattern_name)
+	is_one_way		= one_way_pattern_regexp.test(vector.protocol_name)
 	fallback		= vector.fallback
 	compare			= t~equal
 	compare_blocks	= (array, string) ->
 		buffer	= Buffer.from(array)
 		t.equal(buffer.toString('hex'), string)
 
-	initiator	= new lib.HandshakeState(vector.pattern_name, NOISE_ROLE_INITIATOR)
-	responder	= new lib.HandshakeState(vector.pattern_name, NOISE_ROLE_RESPONDER)
+	initiator	= new lib.HandshakeState(vector.protocol_name, NOISE_ROLE_INITIATOR)
+	responder	= new lib.HandshakeState(vector.protocol_name, NOISE_ROLE_RESPONDER)
 
 	init_ephemeral			= vector.init_ephemeral			&& Buffer.from(vector.init_ephemeral, 'hex')
 	init_hybrid_ephemeral	= vector.init_hybrid_ephemeral	&& Buffer.from(vector.init_hybrid_ephemeral, 'hex')

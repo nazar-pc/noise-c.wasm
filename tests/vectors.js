@@ -56,12 +56,12 @@
       }
       function fn$(i, vector){
         var psk, dh2;
-        if (!vector.pattern_name) {
+        if (!vector.protocol_name) {
           psk = vector.init_psk || vector.resp_psk ? 'PSK' : '';
           dh2 = vector.hybrid ? "+" + vector.hybrid : '';
-          vector.pattern_name = "Noise" + psk + "_" + vector.pattern + "_" + vector.dh + dh2 + "_" + vector.cipher + "_" + vector.hash;
+          vector.protocol_name = "Noise" + psk + "_" + vector.pattern + "_" + vector.dh + dh2 + "_" + vector.cipher + "_" + vector.hash;
         }
-        t.test("Vector index: " + i + ", pattern " + vector.name + " " + vector.pattern_name, function(t){
+        t.test("Vector index: " + i + ", pattern " + vector.name + " " + vector.protocol_name, function(t){
           test_vector_run(t, vector);
           t.end();
         });
@@ -70,7 +70,7 @@
   }
   function test_vector_run(t, vector){
     var is_one_way, fallback, compare, compare_blocks, initiator, responder, init_ephemeral, init_hybrid_ephemeral, resp_ephemeral, resp_hybrid_ephemeral, init_prologue, init_static, init_remote_static, init_psk, resp_prologue, resp_static, resp_remote_static, resp_psk, role, i$, ref$, len$, i, message, send, recv, ciphertext, fallback_id, payload, last_loop_index, handshake_hash_length, c1init, c2init, c2resp, c1resp, mac_len, csend, crecv;
-    is_one_way = one_way_pattern_regexp.test(vector.pattern_name);
+    is_one_way = one_way_pattern_regexp.test(vector.protocol_name);
     fallback = vector.fallback;
     compare = bind$(t, 'equal');
     compare_blocks = function(array, string){
@@ -78,8 +78,8 @@
       buffer = Buffer.from(array);
       return t.equal(buffer.toString('hex'), string);
     };
-    initiator = new lib.HandshakeState(vector.pattern_name, NOISE_ROLE_INITIATOR);
-    responder = new lib.HandshakeState(vector.pattern_name, NOISE_ROLE_RESPONDER);
+    initiator = new lib.HandshakeState(vector.protocol_name, NOISE_ROLE_INITIATOR);
+    responder = new lib.HandshakeState(vector.protocol_name, NOISE_ROLE_RESPONDER);
     init_ephemeral = vector.init_ephemeral && Buffer.from(vector.init_ephemeral, 'hex');
     init_hybrid_ephemeral = vector.init_hybrid_ephemeral && Buffer.from(vector.init_hybrid_ephemeral, 'hex');
     resp_ephemeral = vector.resp_ephemeral && Buffer.from(vector.resp_ephemeral, 'hex');
