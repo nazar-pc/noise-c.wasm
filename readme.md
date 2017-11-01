@@ -21,7 +21,7 @@ npm install noise-c.wasm
 ## API
 
 ### lib.ready(callback)
-* `callback` - Callback function that is called WebAssembly is loaded and library is ready for use
+* `callback` - Callback function that is called when WebAssembly is loaded and library is ready for use
 
 ### lib.constants
 A bunch of constants that are needed for certain calls or for identifying errors.
