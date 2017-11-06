@@ -424,12 +424,12 @@ if (typeof module === "object" && module.exports) {
    * to call free() method, as it was called for you automatically already (except in ReadMessage with fallback_supported == true)
    *
    * @param {string}	protocol_name	The name of the Noise protocol to use, for instance, Noise_N_25519_ChaChaPoly_BLAKE2b
-   * @param {number}	initiator		The role for the new object, either constants.NOISE_ROLE_INITIATOR or constants.NOISE_ROLE_RESPONDER
+   * @param {number}	role			The role for the new object, either constants.NOISE_ROLE_INITIATOR or constants.NOISE_ROLE_RESPONDER
    */
   function HandshakeState(protocol_name, role){
     var tmp, error;
     if (!(this instanceof HandshakeState)) {
-      return new HandshakeState(protocol_name, role, prologue, s, e, rs, re, psk);
+      return new HandshakeState(protocol_name, role);
     }
     tmp = allocate_pointer();
     protocol_name = allocate(0, protocol_name);

@@ -37,7 +37,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 	test("SymmetricState: #protocol_name, plaintext length #{plaintext.length}", (t) !->
 		var ss1
 		t.doesNotThrow (!->
-			ss1	:= new lib.SymmetricState(protocol_name)
+			ss1	:= lib.SymmetricState(protocol_name)
 		), "Constructor doesn't throw an error"
 
 		t.doesNotThrow (!->
@@ -67,7 +67,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 			ss1.EncryptAndHash(new Uint8Array, plaintext)
 		), Error, "SymmetricState() shouldn't be usable after free() is called"
 
-		ss2	= new lib.SymmetricState(protocol_name)
+		ss2	= lib.SymmetricState(protocol_name)
 		ss2.MixKey(random1)
 		ss2.MixHash(random2)
 		ss2.MixKeyAndHash(random3)
@@ -82,7 +82,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 		), Error, 'Subsequent decryption fails'
 		# No need to call free(), since we've failed during last call
 
-		ss3	= new lib.SymmetricState(protocol_name)
+		ss3	= lib.SymmetricState(protocol_name)
 		ss3.MixKey(random1)
 		ss3.MixHash(random2)
 		ss3.MixKeyAndHash(random3)
@@ -111,7 +111,7 @@ random2				= Buffer.from('a3297da8389fe404a843fbffcf32e39fdcb324a1d1b81f5aba875b
 random3				= Buffer.from('fce9bea6a335d78fb7f3f7ddda156d257e33c98c42c3bc873fd628e171428dd9', 'hex')
 
 test('SymmetricState: Check for encryption correctness', (t) !->
-	ss1					= new lib.SymmetricState(protocol_name)
+	ss1					= lib.SymmetricState(protocol_name)
 	ss1.MixKey(random1)
 	ss1.MixHash(random2)
 	ss1.MixKeyAndHash(random3)
@@ -119,7 +119,7 @@ test('SymmetricState: Check for encryption correctness', (t) !->
 	t.equal(ciphertext.toString(), Uint8Array.from(known_ciphertext).toString(), 'Encrypted correctly')
 	ss1.free()
 
-	ss2					= new lib.SymmetricState(protocol_name)
+	ss2					= lib.SymmetricState(protocol_name)
 	ss2.MixKey(random1)
 	ss2.MixHash(random2)
 	ss2.MixKeyAndHash(random3)

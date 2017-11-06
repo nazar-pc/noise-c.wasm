@@ -12,7 +12,7 @@
 		"wasm",
 		"emscripten"
 	],
-	"version"         : "0.1.0",
+	"version"         : "0.1.1",
 	"homepage"        : "https://github.com/nazar-pc/noise-c.wasm",
 	"author"          : {
 		"name"  : "Nazar Mokrynskyi",
@@ -54,7 +54,7 @@
 		"gulp-rename" : "^1.2.2",
 		"gulp-tap"    : "^1.0.1",
 		"gulp-uglify" : "^3.0.0",
-		"tape"        : "^4.7.0"
+		"tape"        : "^4.8.0"
 	},
 	"jspm"            : {
 		"main" : "dist/noise-c.wasm.browser.js"

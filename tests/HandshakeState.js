@@ -116,8 +116,8 @@
     test("HandshakeState: Fallback testing", function(t){
       var initiator_hs, responder_hs, message, initiator_send, initiator_receive, responder_send, responder_receive, ciphertext, plaintext_decrypted;
       t.doesNotThrow(function(){
-        initiator_hs = new lib.HandshakeState('Noise_IK_448_ChaChaPoly_BLAKE2b', lib.constants.NOISE_ROLE_INITIATOR);
-        responder_hs = new lib.HandshakeState('Noise_IK_448_ChaChaPoly_BLAKE2b', lib.constants.NOISE_ROLE_RESPONDER);
+        initiator_hs = lib.HandshakeState('Noise_IK_448_ChaChaPoly_BLAKE2b', lib.constants.NOISE_ROLE_INITIATOR);
+        responder_hs = lib.HandshakeState('Noise_IK_448_ChaChaPoly_BLAKE2b', lib.constants.NOISE_ROLE_RESPONDER);
         set_fixed_ephemeral(initiator_hs);
         set_fixed_ephemeral(responder_hs);
         initiator_hs.Initialize(known_prologue, static_keys.NOISE_ROLE_INITIATOR['private'][448], static_keys.NOISE_ROLE_RESPONDER['public'][448]);
@@ -228,10 +228,10 @@
                         test("HandshakeState: " + protocol_name + ", prologue " + prologue_title + ", psk " + psk_title + ", role_key_s " + role_key_s + ", role_key_rs " + role_key_rs + ", plaintext length " + plaintext.length + ", ad length " + ad.length, function(t){
                           var initiator_hs, responder_hs, initiator_actions, responder_actions, message, action, initiator_send, initiator_receive, responder_send, responder_receive, ciphertext, plaintext_decrypted;
                           t.doesNotThrow(function(){
-                            initiator_hs = new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR);
+                            initiator_hs = lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR);
                           }, "Initiator constructor doesn't throw an error");
                           t.doesNotThrow(function(){
-                            responder_hs = new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER);
+                            responder_hs = lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER);
                           }, "Responder constructor doesn't throw an error");
                           t.doesNotThrow(function(){
                             var s, rs;

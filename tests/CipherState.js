@@ -26,12 +26,12 @@
     known_ciphertext = Buffer.from('91d46bd475958c9e2ec8abaab7757bea81784783500ac6e8fe23', 'hex');
     test('CipherState: Check for encryption correctness', function(t){
       var cs1, ciphertext, cs2, plaintext;
-      cs1 = new lib.CipherState(cipher);
+      cs1 = lib.CipherState(cipher);
       cs1.InitializeKey(key);
       ciphertext = cs1.EncryptWithAd(ad, known_plaintext);
       t.equal(ciphertext.toString(), Uint8Array.from(known_ciphertext).toString(), 'Encrypted correctly');
       cs1.free();
-      cs2 = new lib.CipherState(cipher);
+      cs2 = lib.CipherState(cipher);
       cs2.InitializeKey(key);
       plaintext = cs2.DecryptWithAd(ad, known_ciphertext);
       t.equal(plaintext.toString(), Uint8Array.from(known_plaintext).toString(), 'Decrypted correctly');
@@ -52,7 +52,7 @@
           test("CipherState: " + cipher + ", plaintext length " + plaintext.length + ", ad length " + ad.length, function(t){
             var cs1, ciphertext, ciphertext2, cs2, plaintext_decrypted, cs3, cs4;
             t.doesNotThrow(function(){
-              cs1 = new lib.CipherState(lib.constants[cipher]);
+              cs1 = lib.CipherState(lib.constants[cipher]);
             }, "Constructor doesn't throw an error");
             t.equal(cs1.HasKey(), false, 'No key initially');
             cs1.InitializeKey(key);
@@ -70,7 +70,7 @@
             t.throws(function(){
               cs1.EncryptWithAd(new Uint8Array, plaintext);
             }, Error, "CipherState shouldn't be usable after free() is called");
-            cs2 = new lib.CipherState(lib.constants[cipher]);
+            cs2 = lib.CipherState(lib.constants[cipher]);
             cs2.InitializeKey(key);
             t.doesNotThrow(function(){
               plaintext_decrypted = cs2.DecryptWithAd(ad, ciphertext);
@@ -79,13 +79,13 @@
             t.throws(function(){
               cs2.DecryptWithAd(ad, ciphertext);
             }, Error, 'Subsequent decryption fails');
-            cs3 = new lib.CipherState(lib.constants[cipher]);
+            cs3 = lib.CipherState(lib.constants[cipher]);
             cs3.InitializeKey(key);
             t.throws(function(){
               cs3.DecryptWithAd(randombytes(256), ciphertext);
             }, Error, 'Plaintext decryption with incorrect additional data fails');
             cs3.free();
-            cs4 = new lib.CipherState(lib.constants[cipher]);
+            cs4 = lib.CipherState(lib.constants[cipher]);
             cs4.InitializeKey(key);
             t.throws(function(){
               cs4.DecryptWithAd(ad, randombytes(256));

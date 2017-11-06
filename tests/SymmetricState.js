@@ -32,14 +32,14 @@
     random3 = Buffer.from('fce9bea6a335d78fb7f3f7ddda156d257e33c98c42c3bc873fd628e171428dd9', 'hex');
     test('SymmetricState: Check for encryption correctness', function(t){
       var ss1, ciphertext, ss2, plaintext;
-      ss1 = new lib.SymmetricState(protocol_name);
+      ss1 = lib.SymmetricState(protocol_name);
       ss1.MixKey(random1);
       ss1.MixHash(random2);
       ss1.MixKeyAndHash(random3);
       ciphertext = ss1.EncryptAndHash(known_plaintext);
       t.equal(ciphertext.toString(), Uint8Array.from(known_ciphertext).toString(), 'Encrypted correctly');
       ss1.free();
-      ss2 = new lib.SymmetricState(protocol_name);
+      ss2 = lib.SymmetricState(protocol_name);
       ss2.MixKey(random1);
       ss2.MixHash(random2);
       ss2.MixKeyAndHash(random3);
@@ -74,7 +74,7 @@
               test("SymmetricState: " + protocol_name + ", plaintext length " + plaintext.length, function(t){
                 var ss1, ciphertext, ciphertext2, ss2, plaintext_decrypted, ss3, cs1, cs2;
                 t.doesNotThrow(function(){
-                  ss1 = new lib.SymmetricState(protocol_name);
+                  ss1 = lib.SymmetricState(protocol_name);
                 }, "Constructor doesn't throw an error");
                 t.doesNotThrow(function(){
                   ss1.MixKey(random1);
@@ -98,7 +98,7 @@
                 t.throws(function(){
                   ss1.EncryptAndHash(new Uint8Array, plaintext);
                 }, Error, "SymmetricState() shouldn't be usable after free() is called");
-                ss2 = new lib.SymmetricState(protocol_name);
+                ss2 = lib.SymmetricState(protocol_name);
                 ss2.MixKey(random1);
                 ss2.MixHash(random2);
                 ss2.MixKeyAndHash(random3);
@@ -109,7 +109,7 @@
                 t.throws(function(){
                   ss2.DecryptAndHash(ciphertext);
                 }, Error, 'Subsequent decryption fails');
-                ss3 = new lib.SymmetricState(protocol_name);
+                ss3 = lib.SymmetricState(protocol_name);
                 ss3.MixKey(random1);
                 ss3.MixHash(random2);
                 ss3.MixKeyAndHash(random3);

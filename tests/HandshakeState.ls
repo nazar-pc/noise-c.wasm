@@ -103,11 +103,11 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 		test("HandshakeState: #protocol_name, prologue #prologue_title, psk #psk_title, role_key_s #role_key_s, role_key_rs #role_key_rs, plaintext length #{plaintext.length}, ad length #{ad.length}", (t) !->
 			var initiator_hs, responder_hs
 			t.doesNotThrow (!->
-				initiator_hs	:= new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR)
+				initiator_hs	:= lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR)
 			), "Initiator constructor doesn't throw an error"
 
 			t.doesNotThrow (!->
-				responder_hs	:= new lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER)
+				responder_hs	:= lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER)
 			), "Responder constructor doesn't throw an error"
 
 			t.doesNotThrow (!->
@@ -252,8 +252,8 @@ test("HandshakeState: Fallback testing", (t) !->
 	var responder_send, responder_receive
 
 	t.doesNotThrow (!->
-		initiator_hs	:= new lib.HandshakeState('Noise_IK_448_ChaChaPoly_BLAKE2b', lib.constants.NOISE_ROLE_INITIATOR)
-		responder_hs	:= new lib.HandshakeState('Noise_IK_448_ChaChaPoly_BLAKE2b', lib.constants.NOISE_ROLE_RESPONDER)
+		initiator_hs	:= lib.HandshakeState('Noise_IK_448_ChaChaPoly_BLAKE2b', lib.constants.NOISE_ROLE_INITIATOR)
+		responder_hs	:= lib.HandshakeState('Noise_IK_448_ChaChaPoly_BLAKE2b', lib.constants.NOISE_ROLE_RESPONDER)
 
 		# Fix ephemeral key pairs in order to get predictable ciphertext
 		set_fixed_ephemeral(initiator_hs)

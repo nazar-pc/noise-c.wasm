@@ -82,8 +82,8 @@ function get_handshake_hash (hs, length)
 		buffer	= Buffer.from(array)
 		t.equal(buffer.toString('hex'), string)
 
-	initiator	= new lib.HandshakeState(vector.protocol_name, NOISE_ROLE_INITIATOR)
-	responder	= new lib.HandshakeState(vector.protocol_name, NOISE_ROLE_RESPONDER)
+	initiator	= lib.HandshakeState(vector.protocol_name, NOISE_ROLE_INITIATOR)
+	responder	= lib.HandshakeState(vector.protocol_name, NOISE_ROLE_RESPONDER)
 
 	init_ephemeral			= vector.init_ephemeral			&& Buffer.from(vector.init_ephemeral, 'hex')
 	init_hybrid_ephemeral	= vector.init_hybrid_ephemeral	&& Buffer.from(vector.init_hybrid_ephemeral, 'hex')
