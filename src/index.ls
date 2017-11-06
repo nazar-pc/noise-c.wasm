@@ -296,7 +296,7 @@ HandshakeState:: =
 			assert_no_error(error, @)
 		if lib._noise_handshakestate_needs_remote_public_key(@_state) == 1
 			if !rs
-				throw new Error('Remote static private key (rs) required, but not provided')
+				throw new Error('Remote static public key (rs) required, but not provided')
 			dh		= lib._noise_handshakestate_get_remote_public_key_dh(@_state)
 			rs		= allocate(0, rs)
 			error	= lib._noise_dhstate_set_public_key(dh, rs, rs.length)

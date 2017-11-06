@@ -357,7 +357,7 @@
       }
       if (lib._noise_handshakestate_needs_remote_public_key(this._state) === 1) {
         if (!rs) {
-          throw new Error('Remote static private key (rs) required, but not provided');
+          throw new Error('Remote static public key (rs) required, but not provided');
         }
         dh = lib._noise_handshakestate_get_remote_public_key_dh(this._state);
         rs = allocate(0, rs);
