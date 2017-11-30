@@ -1,4 +1,4 @@
-# noise-c.wasm
+# noise-c.wasm [![Travis CI](https://img.shields.io/travis/nazar-pc/noise-c.wasm/master.svg?label=Travis%20CI)](https://travis-ci.org/nazar-pc/noise-c.wasm)
 [rweather/noise-c](https://github.com/rweather/noise-c) compiled to WebAssembly using Emscripten and optimized for small size.
 
 [Noise protocol](https://noiseprotocol.org/) implementation that works both in Node.js and in modern browsers.
