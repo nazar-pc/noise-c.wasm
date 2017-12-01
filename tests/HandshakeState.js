@@ -81,6 +81,12 @@
     IK: roundtrip_halves[2],
     IX: roundtrip_halves[2]
   };
+  if (process.env.FAST_HANDSHAKESTATE) {
+    prologues = prologues.slice(-1);
+    psks = psks.slice(-1);
+    ads = ads.slice(-1);
+    plaintexts = plaintexts.slice(-1);
+  }
   lib.ready(function(){
     var i$, ref$, len$, known_prologue, known_plaintext, known_ad, fixed_ephemeral, initiator_ciphertext, responder_ciphertext;
     for (i$ = 0, len$ = (ref$ = patterns).length; i$ < len$; ++i$) {

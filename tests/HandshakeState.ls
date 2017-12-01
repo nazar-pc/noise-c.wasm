@@ -85,6 +85,12 @@ expected_actions	=
 #ads			= [ads[0]]
 #plaintexts	= [plaintexts[0]]
 
+if process.env.FAST_HANDSHAKESTATE
+	prologues	= prologues.slice(-1)
+	psks		= psks.slice(-1)
+	ads			= ads.slice(-1)
+	plaintexts	= plaintexts.slice(-1)
+
 <-! lib.ready
 for let pattern in patterns => for let curve in curves => for let cipher in ciphers => for let hash in hashes => for let prologue in prologues => for let psk in psks => for let role_key_s in roles_keys => for let role_key_rs in roles_keys
 	# NewHope not supported with other patterns: https://rweather.github.io/noise-c/index.html#algorithms
