@@ -97,3 +97,17 @@ test('CipherState: Check for encryption correctness', (t) !->
 
 	t.end()
 )
+
+
+test('CipherState: Nonce increment on failed decryption', (t) !->
+	cs	= lib.CipherState(cipher)
+	cs.InitializeKey(key)
+	# Intentionally causing decryption to fail
+	try
+		cs.DecryptWithAd(ad, new Uint8Array(known_ciphertext.length))
+	plaintext	= cs.DecryptWithAd(ad, known_ciphertext)
+	t.equal(plaintext.toString(), Uint8Array.from(known_plaintext).toString(), 'Decrypted correctly')
+	cs.free()
+
+	t.end()
+)

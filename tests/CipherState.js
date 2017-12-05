@@ -38,6 +38,18 @@
       cs2.free();
       t.end();
     });
+    test('CipherState: Nonce increment on failed decryption', function(t){
+      var cs, plaintext;
+      cs = lib.CipherState(cipher);
+      cs.InitializeKey(key);
+      try {
+        cs.DecryptWithAd(ad, new Uint8Array(known_ciphertext.length));
+      } catch (e$) {}
+      plaintext = cs.DecryptWithAd(ad, known_ciphertext);
+      t.equal(plaintext.toString(), Uint8Array.from(known_plaintext).toString(), 'Decrypted correctly');
+      cs.free();
+      t.end();
+    });
     function fn$(cipher){
       var i$, ref$, len$;
       for (i$ = 0, len$ = (ref$ = plaintexts).length; i$ < len$; ++i$) {
