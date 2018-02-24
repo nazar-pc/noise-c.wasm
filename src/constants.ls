@@ -1,8 +1,7 @@
 /**
- * @package   noise-c.wasm
- * @author    Nazar Mokrynskyi <nazar@mokrynskyi.com>
- * @copyright Copyright (c) 2017, Nazar Mokrynskyi
- * @license   MIT License, see license.txt
+ * @package noise-c.wasm
+ * @author  Nazar Mokrynskyi <nazar@mokrynskyi.com>
+ * @license 0BSD
  */
 /**
  * Obtained using `vendor/include/noise/protocol/constants.h` converted to JavaScript and post-processed with Prepack to eliminate runtime computations
@@ -10,7 +9,7 @@
  * There are many constants exposed by the library, but only subset of them is used in production, so the rest are still here, uncomment when/if needed
  * for debugging or other purposes
  */
-module.exports =
+constants =
 # AEAD cipher algorithms
 	NOISE_CIPHER_NONE				: 0
 #	NOISE_CIPHER_CATEGORY			: 17152
@@ -135,3 +134,13 @@ module.exports =
 
 # Recommended maximum length for fingerprint buffers
 #	NOISE_MAX_FINGERPRINT_LEN		: 256
+
+if typeof define == 'function' && define['amd']
+	# AMD
+	define(-> constants)
+else if typeof exports == 'object'
+	# CommonJS
+	module.exports = constants
+else
+	# Browser globals
+	@'__noise_c_wasm_constants' = constants

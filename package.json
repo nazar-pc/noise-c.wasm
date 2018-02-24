@@ -12,51 +12,28 @@
 		"wasm",
 		"emscripten"
 	],
-	"version"         : "0.1.2",
+	"version"         : "0.2.0",
 	"homepage"        : "https://github.com/nazar-pc/noise-c.wasm",
-	"author"          : {
-		"name"  : "Nazar Mokrynskyi",
-		"email" : "nazar@mokrynskyi.com",
-		"url"   : "https://cleverstyle.org"
-	},
+	"author"          : "Nazar Mokrynskyi <nazar@mokrynskyi.com>",
 	"repository"      : {
 		"type" : "git",
 		"url"  : "git://github.com/nazar-pc/noise-c.wasm.git"
 	},
-	"licenses"        : [
-		{
-			"type" : "MIT",
-			"url"  : "https://github.com/nazar-pc/noise-c.wasm/blob/master/license.txt"
-		}
-	],
-	"bugs"            : "https://github.com/nazar-pc/noise-c.wasm/issues",
-	"docs"            : "https://github.com/nazar-pc/noise-c.wasm",
+	"license"         : "0BSD",
 	"main"            : "src/index.js",
-	"browser"         : {
-		"./src/randombytes" : "./src/randombytes.browser"
-	},
 	"files"           : [
-		"dist",
-		"src",
-		"noise-c.js",
-		"noise-c.wasm"
+		"src"
 	],
 	"scripts"         : {
 		"test"   : "tape tests/**/*.js",
-		"vendor" : "git clone https://github.com/rweather/noise-c.git vendor",
+		"vendor" : "git clone https://github.com/rweather/noise-c.git vendor; cd vendor; git checkout 40b64ab83d4ecfdbefcab319a91761507e9fb98c",
 		"build"  : "gulp build"
 	},
 	"devDependencies" : {
-		"browserify"  : "^14.4.0",
-		"del"         : "^3.0.0",
 		"glob"        : "^7.1.2",
 		"gulp"        : "^3.9.1",
 		"gulp-rename" : "^1.2.2",
-		"gulp-tap"    : "^1.0.1",
 		"gulp-uglify" : "^3.0.0",
-		"tape"        : "^4.8.0"
-	},
-	"jspm"            : {
-		"main" : "dist/noise-c.wasm.browser.js"
+		"tape"        : "^4.9.0"
 	}
 }

@@ -1,11 +1,9 @@
 /**
- * @package   noise-c.wasm
- * @author    Nazar Mokrynskyi <nazar@mokrynskyi.com>
- * @copyright Copyright (c) 2017, Nazar Mokrynskyi
- * @license   MIT License, see license.txt
+ * @package noise-c.wasm
+ * @author  Nazar Mokrynskyi <nazar@mokrynskyi.com>
+ * @license 0BSD
  */
 mergeInto(LibraryManager.library, {
 	noise_rand_bytes	: (offset, size) !->
-		randombytes	= require('./src/randombytes')
-		HEAPU8.set(randombytes(size), offset)
+		HEAPU8.set(Module['_random_bytes'](size), offset)
 })
