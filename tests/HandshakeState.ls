@@ -3,7 +3,7 @@
  * @author  Nazar Mokrynskyi <nazar@mokrynskyi.com>
  * @license 0BSD
  */
-lib				= require('..')
+lib				= require('..')()
 lib_internal	= lib._lib_internal
 randombytes		= require('crypto').randomBytes
 test			= require('tape')

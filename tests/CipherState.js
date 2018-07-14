@@ -6,7 +6,7 @@
  */
 (function(){
   var lib, randombytes, test, ciphers, plaintexts, ads, key;
-  lib = require('..');
+  lib = require('..')();
   randombytes = require('crypto').randomBytes;
   test = require('tape');
   ciphers = ['NOISE_CIPHER_CHACHAPOLY', 'NOISE_CIPHER_AESGCM'];

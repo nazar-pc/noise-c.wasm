@@ -4,7 +4,7 @@
  * @license 0BSD
  */
 fs				= require('fs')
-lib				= require('..')
+lib				= require('..')()
 lib_internal	= lib._lib_internal
 randombytes		= require('crypto').randomBytes
 test			= require('tape')

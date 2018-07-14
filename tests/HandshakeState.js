@@ -6,7 +6,7 @@
  */
 (function(){
   var lib, lib_internal, randombytes, test, patterns, curves, ciphers, hashes, prologues, psks, ads, plaintexts, static_keys, roles_keys, no_empty_keys, roundtrip_halves, expected_actions;
-  lib = require('..');
+  lib = require('..')();
   lib_internal = lib._lib_internal;
   randombytes = require('crypto').randomBytes;
   test = require('tape');

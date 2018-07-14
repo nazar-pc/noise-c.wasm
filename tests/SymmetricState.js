@@ -6,7 +6,7 @@
  */
 (function(){
   var lib, randombytes, test, patterns, curves, ciphers, hashes, plaintexts, random1, random2, random3;
-  lib = require('..');
+  lib = require('..')();
   randombytes = require('crypto').randomBytes;
   test = require('tape');
   patterns = ['N', 'X', 'K', 'NN', 'NK', 'NX', 'XN', 'XK', 'XX', 'KN', 'KK', 'KX', 'IN', 'IK', 'IX', 'XXfallback', 'Xnoidh', 'NXnoidh', 'XXnoidh', 'KXnoidh', 'IKnoidh', 'IXnoidh', 'NNhfs', 'NKhfs', 'NXhfs', 'XNhfs', 'XKhfs', 'XXhfs', 'KNhfs', 'KKhfs', 'KXhfs', 'INhfs', 'IKhfs', 'IXhfs', 'XXfallback+hfs', 'NXnoidh+hfs', 'XXnoidh+hfs', 'KXnoidh+hfs', 'IKnoidh+hfs', 'IXnoidh+hfs'];

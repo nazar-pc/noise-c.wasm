@@ -26,9 +26,9 @@
      */
     random_bytes = require('crypto').randomBytes;
   }
-  function Wrapper(lib, constants){
+  function CreateLib(lib, constants, options){
     var allocate, allocate_pointer;
-    lib = lib();
+    lib = lib(options);
     lib['_random_bytes'] = random_bytes;
     allocate = lib['allocateBytes'];
     allocate_pointer = lib['allocatePointer'];
@@ -529,6 +529,9 @@
       'HandshakeState': HandshakeState,
       '_lib_internal': lib
     };
+  }
+  function Wrapper(lib, constants){
+    return CreateLib.bind(this, lib, constants);
   }
   if (typeof define === 'function' && define['amd']) {
     define(['./noise-c', './constants'], Wrapper);

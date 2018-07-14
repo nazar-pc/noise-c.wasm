@@ -21,8 +21,8 @@ else
 	 */
 	random_bytes	= require('crypto').randomBytes
 
-function Wrapper (lib, constants)
-	lib						= lib()
+function CreateLib (lib, constants, options)
+	lib						= lib(options)
 	# Hack: For Closure Compiler that otherwise complains about `require`
 	lib['_random_bytes']	= random_bytes
 	allocate				= lib['allocateBytes']
@@ -437,6 +437,9 @@ function Wrapper (lib, constants)
 		'HandshakeState'	: HandshakeState
 		'_lib_internal'		: lib
 	}
+
+function Wrapper (lib, constants)
+	CreateLib.bind(@, lib, constants)
 
 if typeof define == 'function' && define['amd']
 	# AMD

@@ -7,7 +7,7 @@
 (function(){
   var fs, lib, lib_internal, randombytes, test, ref$, NOISE_PATTERN_XX_FALLBACK, NOISE_PATTERN_XX_FALLBACK_HFS, NOISE_ACTION_NONE, NOISE_ACTION_WRITE_MESSAGE, NOISE_ACTION_READ_MESSAGE, NOISE_ACTION_FAILED, NOISE_ACTION_SPLIT, NOISE_ROLE_INITIATOR, NOISE_ROLE_RESPONDER, NOISE_ERROR_NONE, files_to_test, one_way_pattern_regexp;
   fs = require('fs');
-  lib = require('..');
+  lib = require('..')();
   lib_internal = lib._lib_internal;
   randombytes = require('crypto').randomBytes;
   test = require('tape');
