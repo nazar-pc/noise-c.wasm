@@ -11,7 +11,7 @@ This project basically does 2 things:
 * compiles upstream noise-c C library into WebAssembly
 * wraps plain functions into OOP interface close to what is specified in the spec (including functions names)
 
-When reading LiveScript code make sure to configure 1 tab to be 4 spaces (GitHub uses 8 by default), otherwise code might be hard to read.
+When reading LiveScript code make sure to configure 1 tab to be 4 spaces, otherwise code might be hard to read.
 
 ## How to install
 ```
@@ -67,7 +67,7 @@ Take a look at `src/index.ls` for JsDoc sections with arguments and return types
 ## Contribution
 Feel free to create issues and send pull requests (for big changes create an issue first and link it from the PR), they are highly appreciated!
 
-When reading LiveScript code make sure to configure 1 tab to be 4 spaces (GitHub uses 8 by default), otherwise code might be hard to read.
+When reading LiveScript code make sure to configure 1 tab to be 4 spaces, otherwise code might be hard to read.
 
 ## License
 Free Public License 1.0.0 / Zero Clause BSD License
