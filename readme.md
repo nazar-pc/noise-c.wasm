@@ -33,6 +33,7 @@ Check `src/constants.ls` for complete list of available constants.
 CipherState object [as in specification](http://noiseprotocol.org/noise.html#the-cipherstate-object), has following methods:
 * `InitializeKey(key)`
 * `HasKey()`
+* `SetNonce(nonce)`
 * `EncryptWithAd(ad, plaintext)`
 * `DecryptWithAd(ad, ciphertext)`
 * `Rekey()`

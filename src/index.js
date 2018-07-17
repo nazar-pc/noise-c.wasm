@@ -92,6 +92,14 @@
         return lib._noise_cipherstate_has_key(this._state) === 1;
       }
       /**
+       * @param {number} nonce
+       */,
+      SetNonce: function(nonce){
+        var error;
+        error = lib._noise_cipherstate_set_nonce(this._state, nonce);
+        assert_no_error(error, this);
+      }
+      /**
        * @param {Uint8Array} ad
        * @param {Uint8Array} plaintext
        *

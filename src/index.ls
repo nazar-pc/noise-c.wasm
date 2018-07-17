@@ -74,6 +74,12 @@ function Wrapper (lib, constants)
 		HasKey			: ->
 			lib._noise_cipherstate_has_key(@_state) == 1
 		/**
+		 * @param {number} nonce
+		 */
+		SetNonce		: (nonce) !->
+			error	= lib._noise_cipherstate_set_nonce(@_state, nonce)
+			assert_no_error(error, @)
+		/**
 		 * @param {Uint8Array} ad
 		 * @param {Uint8Array} plaintext
 		 *
