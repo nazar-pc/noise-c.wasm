@@ -3,7 +3,7 @@
  * @author  Nazar Mokrynskyi <nazar@mokrynskyi.com>
  * @license 0BSD
  */
-lib			= require('..')()
+createLib	= require('..')
 randombytes	= require('crypto').randomBytes
 test		= require('tape')
 
@@ -30,7 +30,7 @@ random3		= randombytes(128)
 #hashes		= [hashes[0]]
 #plaintexts	= [plaintexts[0]]
 
-<-! lib.ready
+lib	<-! createLib
 for let pattern in patterns => for let curve in curves => for let cipher in ciphers => for let hash in hashes => for let plaintext in plaintexts
 	protocol_name	= "Noise_#{pattern}_#{curve}_#{cipher}_#{hash}"
 	test("SymmetricState: #protocol_name, plaintext length #{plaintext.length}", (t) !->

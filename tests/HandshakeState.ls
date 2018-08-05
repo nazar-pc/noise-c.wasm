@@ -3,8 +3,7 @@
  * @author  Nazar Mokrynskyi <nazar@mokrynskyi.com>
  * @license 0BSD
  */
-lib				= require('..')()
-lib_internal	= lib._lib_internal
+createLib		= require('..')
 randombytes		= require('crypto').randomBytes
 test			= require('tape')
 
@@ -90,7 +89,8 @@ if process.env.FAST_HANDSHAKESTATE
 	ads			= ads.slice(-1)
 	plaintexts	= plaintexts.slice(-1)
 
-<-! lib.ready
+lib				<-! createLib
+lib_internal	= lib._lib_internal
 for let pattern in patterns => for let curve in curves => for let cipher in ciphers => for let hash in hashes => for let prologue in prologues => for let psk in psks => for let role_key_s in roles_keys => for let role_key_rs in roles_keys
 	# NewHope not supported with other patterns: https://rweather.github.io/noise-c/index.html#algorithms
 	if curve == 'NewHope' && pattern != 'NN'

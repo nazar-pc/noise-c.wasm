@@ -5,9 +5,8 @@
  * @license 0BSD
  */
 (function(){
-  var lib, lib_internal, randombytes, test, patterns, curves, ciphers, hashes, prologues, psks, ads, plaintexts, static_keys, roles_keys, no_empty_keys, roundtrip_halves, expected_actions;
-  lib = require('..')();
-  lib_internal = lib._lib_internal;
+  var createLib, randombytes, test, patterns, curves, ciphers, hashes, prologues, psks, ads, plaintexts, static_keys, roles_keys, no_empty_keys, roundtrip_halves, expected_actions;
+  createLib = require('..');
   randombytes = require('crypto').randomBytes;
   test = require('tape');
   patterns = ['N', 'X', 'K', 'NN', 'NK', 'NX', 'XN', 'XK', 'XX', 'KN', 'KK', 'KX', 'IN', 'IK', 'IX'];
@@ -86,8 +85,9 @@
     ads = ads.slice(-1);
     plaintexts = plaintexts.slice(-1);
   }
-  lib.ready(function(){
-    var i$, ref$, len$, known_prologue, known_plaintext, known_ad, fixed_ephemeral, initiator_ciphertext, responder_ciphertext;
+  createLib(function(lib){
+    var lib_internal, i$, ref$, len$, known_prologue, known_plaintext, known_ad, fixed_ephemeral, initiator_ciphertext, responder_ciphertext;
+    lib_internal = lib._lib_internal;
     for (i$ = 0, len$ = (ref$ = patterns).length; i$ < len$; ++i$) {
       (fn$.call(this, ref$[i$]));
     }

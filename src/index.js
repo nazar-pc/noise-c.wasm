@@ -26,8 +26,13 @@
      */
     random_bytes = require('crypto').randomBytes;
   }
-  function CreateLib(lib, constants, options){
-    var allocate, allocate_pointer;
+  function CreateLib(lib, constants, arg1, arg2){
+    var options, callback, allocate, allocate_pointer;
+    options = typeof arg1 === 'function' ? {} : arg1;
+    callback = arg2 || arg1;
+    if (typeof callback !== 'function') {
+      throw new TypeError('noise-c.wasm: Callback is not a function');
+    }
     lib = lib(options);
     lib['_random_bytes'] = random_bytes;
     allocate = lib['allocateBytes'];
@@ -521,14 +526,15 @@
       enumerable: false,
       value: HandshakeState
     });
-    return {
-      'ready': lib.then,
-      'constants': constants,
-      'CipherState': CipherState,
-      'SymmetricState': SymmetricState,
-      'HandshakeState': HandshakeState,
-      '_lib_internal': lib
-    };
+    lib.then(function(){
+      callback({
+        'constants': constants,
+        'CipherState': CipherState,
+        'SymmetricState': SymmetricState,
+        'HandshakeState': HandshakeState,
+        '_lib_internal': lib
+      });
+    });
   }
   function Wrapper(lib, constants){
     return CreateLib.bind(this, lib, constants);

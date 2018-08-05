@@ -5,8 +5,8 @@
  * @license 0BSD
  */
 (function(){
-  var lib, randombytes, test, patterns, curves, ciphers, hashes, plaintexts, random1, random2, random3;
-  lib = require('..')();
+  var createLib, randombytes, test, patterns, curves, ciphers, hashes, plaintexts, random1, random2, random3;
+  createLib = require('..');
   randombytes = require('crypto').randomBytes;
   test = require('tape');
   patterns = ['N', 'X', 'K', 'NN', 'NK', 'NX', 'XN', 'XK', 'XX', 'KN', 'KK', 'KX', 'IN', 'IK', 'IX', 'XXfallback', 'Xnoidh', 'NXnoidh', 'XXnoidh', 'KXnoidh', 'IKnoidh', 'IXnoidh', 'NNhfs', 'NKhfs', 'NXhfs', 'XNhfs', 'XKhfs', 'XXhfs', 'KNhfs', 'KKhfs', 'KXhfs', 'INhfs', 'IKhfs', 'IXhfs', 'XXfallback+hfs', 'NXnoidh+hfs', 'XXnoidh+hfs', 'KXnoidh+hfs', 'IKnoidh+hfs', 'IXnoidh+hfs'];
@@ -17,7 +17,7 @@
   random1 = randombytes(32);
   random2 = randombytes(64);
   random3 = randombytes(128);
-  lib.ready(function(){
+  createLib(function(lib){
     var i$, ref$, len$, protocol_name, key, known_plaintext, known_ciphertext, random1, random2, random3;
     for (i$ = 0, len$ = (ref$ = patterns).length; i$ < len$; ++i$) {
       (fn$.call(this, ref$[i$]));

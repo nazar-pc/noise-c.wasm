@@ -4,10 +4,12 @@
  * @license 0BSD
  */
 fs				= require('fs')
-lib				= require('..')()
-lib_internal	= lib._lib_internal
+createLib		= require('..')
 randombytes		= require('crypto').randomBytes
 test			= require('tape')
+
+lib				<-! createLib
+lib_internal	= lib._lib_internal
 
 {
 	NOISE_PATTERN_XX_FALLBACK
@@ -177,6 +179,5 @@ function get_handshake_hash (hs, length)
 	c1resp.free()
 	c2resp.free()
 
-<-! lib.ready
 for filename in files_to_test
 	process_test_vectors(filename)
