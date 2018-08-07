@@ -5,15 +5,15 @@
  * @license 0BSD
  */
 (function(){
-  var lib, randombytes, test, ciphers, plaintexts, ads, key;
-  lib = require('..');
+  var createLib, randombytes, test, ciphers, plaintexts, ads, key;
+  createLib = require('..');
   randombytes = require('crypto').randomBytes;
   test = require('tape');
   ciphers = ['NOISE_CIPHER_CHACHAPOLY', 'NOISE_CIPHER_AESGCM'];
   plaintexts = [new Uint8Array, Uint8Array.from(randombytes(10))];
   ads = [new Uint8Array, randombytes(256)];
   key = randombytes(32);
-  lib.ready(function(){
+  createLib(function(lib){
     var i$, ref$, len$, cipher, ad, key, known_plaintext, known_ciphertext;
     for (i$ = 0, len$ = (ref$ = ciphers).length; i$ < len$; ++i$) {
       (fn$.call(this, ref$[i$]));

@@ -3,7 +3,7 @@
  * @author  Nazar Mokrynskyi <nazar@mokrynskyi.com>
  * @license 0BSD
  */
-lib			= require('..')
+createLib	= require('..')
 randombytes	= require('crypto').randomBytes
 test		= require('tape')
 
@@ -16,7 +16,7 @@ key			= randombytes(32)
 #ciphers		= [ciphers[0]]
 #plaintexts	= [plaintexts[0]]
 
-<-! lib.ready
+lib	<-! createLib
 for let cipher in ciphers => for let plaintext in plaintexts => for let ad in ads
 	test("CipherState: #cipher, plaintext length #{plaintext.length}, ad length #{ad.length}", (t) !->
 		var cs1
