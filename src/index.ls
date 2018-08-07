@@ -21,8 +21,13 @@ else
 	 */
 	random_bytes	= require('crypto').randomBytes
 
-function Wrapper (lib, constants)
-	lib						= lib()
+!function CreateLib (lib, constants, arg1, arg2)
+	options					= if typeof arg1 == 'function' then {} else arg1
+	callback				= arg2 or arg1
+	if typeof callback != 'function'
+		throw new TypeError('noise-c.wasm: Callback is not a function')
+
+	lib						= lib(options)
 	# Hack: For Closure Compiler that otherwise complains about `require`
 	lib['_random_bytes']	= random_bytes
 	allocate				= lib['allocateBytes']
@@ -435,14 +440,17 @@ function Wrapper (lib, constants)
 
 	Object.defineProperty(HandshakeState::, 'constructor', {enumerable: false, value: HandshakeState})
 
-	{
-		'ready'				: lib.then
-		'constants'			: constants
-		'CipherState'		: CipherState
-		'SymmetricState'	: SymmetricState
-		'HandshakeState'	: HandshakeState
-		'_lib_internal'		: lib
-	}
+	lib.then(!->
+		callback({
+			'constants'			: constants
+			'CipherState'		: CipherState
+			'SymmetricState'	: SymmetricState
+			'HandshakeState'	: HandshakeState
+			'_lib_internal'		: lib
+		}))
+
+function Wrapper (lib, constants)
+	CreateLib.bind(@, lib, constants)
 
 if typeof define == 'function' && define['amd']
 	# AMD
