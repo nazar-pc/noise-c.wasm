@@ -49,6 +49,21 @@
       cs.free();
       t.end();
     });
+    test('CipherState: SetNonce', function(t){
+      var cs, ciphertext1, ciphertext2;
+      cs = lib.CipherState(cipher);
+      cs.InitializeKey(key);
+      cs.EncryptWithAd(ad, known_plaintext);
+      ciphertext1 = cs.EncryptWithAd(ad, known_plaintext);
+      cs.free();
+      cs = lib.CipherState(cipher);
+      cs.InitializeKey(key);
+      cs.SetNonce(1);
+      ciphertext2 = cs.EncryptWithAd(ad, known_plaintext);
+      cs.free();
+      t.equal(ciphertext1.toString(), ciphertext2.toString(), 'Encrypted correctly');
+      t.end();
+    });
     function fn$(cipher){
       var i$, ref$, len$;
       for (i$ = 0, len$ = (ref$ = plaintexts).length; i$ < len$; ++i$) {

@@ -110,3 +110,20 @@ test('CipherState: Nonce increment on failed decryption', (t) !->
 
 	t.end()
 )
+
+test('CipherState: SetNonce', (t) !->
+	cs	= lib.CipherState(cipher)
+	cs.InitializeKey(key)
+	cs.EncryptWithAd(ad, known_plaintext)
+	ciphertext1 = cs.EncryptWithAd(ad, known_plaintext)
+	cs.free()
+
+	cs	= lib.CipherState(cipher)
+	cs.InitializeKey(key)
+	cs.SetNonce(1)
+	ciphertext2 = cs.EncryptWithAd(ad, known_plaintext)
+	cs.free()
+
+	t.equal(ciphertext1.toString(), ciphertext2.toString(), 'Encrypted correctly')
+	t.end()
+)

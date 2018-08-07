@@ -81,7 +81,7 @@ gulp
 			'_noise_cipherstate_init_key'
 			'_noise_cipherstate_new_by_id'
 #			'_noise_cipherstate_new_by_name'
-#			'_noise_cipherstate_set_nonce'
+			'_noise_cipherstate_set_nonce'
 
 			'_noise_symmetricstate_decrypt_and_hash'
 			'_noise_symmetricstate_encrypt_and_hash'
