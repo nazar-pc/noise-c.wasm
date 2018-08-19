@@ -11,8 +11,6 @@ This project basically does 2 things:
 * compiles upstream noise-c C library into WebAssembly
 * wraps plain functions into OOP interface close to what is specified in the spec (including functions names)
 
-When reading LiveScript code make sure to configure 1 tab to be 4 spaces, otherwise code might be hard to read.
-
 ## How to install
 ```
 npm install noise-c.wasm
