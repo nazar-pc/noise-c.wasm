@@ -21,3 +21,11 @@ size_t SymmetricState_get_ck (NoiseSymmetricState *state, uint8_t **ck) {
 	*ck	= state->ck;
 	return NOISE_MAX_HASHLEN;
 }
+
+int NoiseProtocolId_get_dh_id (NoiseProtocolId *id) {
+	return id->dh_id;
+}
+
+int NoiseProtocolId_get_hash_id (NoiseProtocolId *id) {
+	return id->hash_id;
+}

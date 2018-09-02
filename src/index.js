@@ -63,6 +63,63 @@
       }
     }
     /**
+    * Create a new X25519 or X448 keypar.
+    * @param {number} curve_id constants.NOISE_DH_CURVE448 or constants.NOISE_DH_CURVE25519
+    * @return {Object} '{keyType,privateKeypublicKey}'
+    */
+    function CreateKeyPair(curve_id){
+      var tmp, error, dh, e, secret_buffer, public_buffer, keyType, secret_key, public_key;
+      if (curve_id === constants.NOISE_DH_CURVE448 || curve_id === constants.NOISE_DH_CURVE25519) {
+        tmp = allocate_pointer();
+        error = lib._noise_dhstate_new_by_id(tmp, curve_id);
+        assert_no_error(error, tmp);
+        dh = tmp.dereference();
+        tmp.free();
+        error = lib._noise_dhstate_generate_keypair(dh);
+        try {
+          assert_no_error(error);
+        } catch (e$) {
+          e = e$;
+          lib._noise_dhstate_free(dh);
+          throw e;
+        }
+        secret_buffer = null;
+        public_buffer = null;
+        keyType = null;
+        if (curve_id === constants.NOISE_DH_CURVE448) {
+          keyType = "curve448";
+          secret_buffer = allocate(56);
+          public_buffer = allocate(56);
+          error = lib._noise_dhstate_get_keypair(dh, secret_buffer, 56, public_buffer, 56);
+        } else {
+          keyType = "curve25519";
+          secret_buffer = allocate(32);
+          public_buffer = allocate(32);
+          error = lib._noise_dhstate_get_public_key(dhs, secret_buffer, 32, public_buffer, 32);
+        }
+        lib._noise_dhstate_free(dh);
+        secret_key = null;
+        public_key = null;
+        try {
+          assert_no_error(error);
+          secret_key = secret_buffer.get();
+          secret_buffer.free();
+          public_key = public_buffer.get();
+          public_buffer.free();
+        } catch (e$) {
+          e = e$;
+          secret_buffer.free();
+          public_buffer.free();
+          throw e;
+        }
+        return {
+          keyType: keyType,
+          privateKey: secret_key,
+          publicKey: public_key
+        };
+      }
+    }
+    /**
      * The CipherState object, API is close to the spec: http://noiseprotocol.org/noise.html#the-cipherstate-object
      *
      * NOTE: If you ever get an exception with Error object, whose message is one of constants.NOISE_ERROR_* keys, object is no longer usable and there is no need
@@ -521,6 +578,75 @@
         return [cs1, cs2];
       }
       /**
+       * GetHandshakeHash gets the channel binding has if the handshake is completed otherwise throws error.
+       * @return {Uint8Array}
+       */,
+      GetHandshakeHash: function(){
+        var pid, error, e, hash_buffer, real_hash;
+        pid = allocate_pointer();
+        error = lib._noise_handshakestate_get_protocol_id(this._state, pid);
+        try {
+          assert_no_error(error, this);
+        } catch (e$) {
+          e = e$;
+          pid.free();
+          throw e;
+        }
+        hash_buffer = null;
+        if (lib._NoiseProtocolId_get_hash_id(pid) === constants.NOISE_HASH_BLAKE2b || lib._NoiseProtocolId_get_hash_id(pid) === constants.NOISE_HASH_SHA512) {
+          hash_buffer = allocate(64);
+          error = lib._noise_handshakestate_get_handshake_hash(this._state, hash_buffer, 64);
+        } else {
+          hash_buffer = allocate(32);
+          error = lib._noise_handshakestate_get_handshake_hash(this._state, hash_buffer, 32);
+        }
+        pid.free();
+        real_hash = null;
+        try {
+          assert_no_error(error, this);
+          real_hash = hash_buffer.get();
+          hash_buffer.free();
+        } catch (e$) {
+          e = e$;
+          hash_buffer.free();
+          throw e;
+        }
+        return real_hash;
+      }
+      /**
+       * GetRemotePublicKey gets raw remote static public key if available.
+       * @return {null|Uint8Array}
+       */,
+      GetRemotePublicKey: function(){
+        var dhs, key_buffer, error, real_key, e;
+        if (0 !== lib._noise_handshakestate_has_remote_public_key(this._state)) {
+          dhs = lib._noise_handshakestate_get_remote_public_key_dh(this._state);
+          key_buffer = null;
+          if (lib._noise_dhstate_get_dh_id(dhs) === constants.NOISE_DH_CURVE448) {
+            key_buffer = allocate(56);
+            error = lib._noise_dhstate_get_public_key(dhs, hash_buffer, 56);
+          } else if (lib._noise_dhstate_get_dh_id(dhs) === constants.NOISE_DH_CURVE25519) {
+            key_buffer = allocate(32);
+            error = lib._noise_dhstate_get_public_key(dhs, hash_buffer, 32);
+          } else {
+            error = constants.NOISE_ERROR_UNKNOWN_ID;
+          }
+          if (key_buffer !== null) {
+            real_key = null;
+            try {
+              assert_no_error(error, this);
+              real_key = key_buffer.get();
+              key_buffer.free();
+            } catch (e$) {
+              e = e$;
+              key_buffer.free();
+              throw e;
+            }
+            return real_key;
+          }
+        }
+      }
+      /**
        * Call this when object is not needed anymore to avoid memory leaks
        */,
       free: function(){
@@ -540,6 +666,7 @@
         'CipherState': CipherState,
         'SymmetricState': SymmetricState,
         'HandshakeState': HandshakeState,
+        'CreateKeyPair': CreateKeyPair,
         '_lib_internal': lib
       });
     });
