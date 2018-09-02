@@ -78,7 +78,7 @@ else
 				keyType = "curve25519"
 				secret_buffer = allocate(32)
 				public_buffer = allocate(32)
-				error = lib._noise_dhstate_get_public_key(dhs, secret_buffer, 32, public_buffer, 32)
+				error = lib._noise_dhstate_get_keypair(dh, secret_buffer, 32, public_buffer, 32)
 			lib._noise_dhstate_free(dh)	
 			secret_key	= null
 			public_key	= null	
