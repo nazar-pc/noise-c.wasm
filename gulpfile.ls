@@ -146,8 +146,8 @@ gulp
 			'_noise_dhstate_get_dh_id'
 			'_noise_dhstate_get_keypair'
 #			'_noise_dhstate_get_private_key_length'
-#			'_noise_dhstate_get_public_key'
-#			'_noise_dhstate_get_public_key_length'
+			'_noise_dhstate_get_public_key'
+			'_noise_dhstate_get_public_key_length'
 #			'_noise_dhstate_get_role'
 #			'_noise_dhstate_get_shared_key_length'
 #			'_noise_dhstate_has_keypair'
@@ -217,8 +217,7 @@ gulp
 			'_NoiseBuffer_create'
 			'_NoiseBuffer_get_size'
 			'_SymmetricState_get_ck'
-			'_NoiseProtocolId_get_dh_id'
-			'_NoiseProtocolId_get_hash_id'
+			'_NoiseHandshakeState_get_hash_id'
 		])
 		# Options that are only specified to optimize resulting file size and basically remove unused features
 		optimize	= "-Oz --llvm-lto 1 --closure 1 -s NO_EXIT_RUNTIME=1 -s NO_FILESYSTEM=1 -s EXPORTED_RUNTIME_METHODS=[] -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]"

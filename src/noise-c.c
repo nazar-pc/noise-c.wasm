@@ -22,10 +22,11 @@ size_t SymmetricState_get_ck (NoiseSymmetricState *state, uint8_t **ck) {
 	return NOISE_MAX_HASHLEN;
 }
 
-int NoiseProtocolId_get_dh_id (NoiseProtocolId *id) {
-	return id->dh_id;
-}
-
-int NoiseProtocolId_get_hash_id (NoiseProtocolId *id) {
-	return id->hash_id;
+int NoiseHandshakeState_get_hash_id (NoiseHandshakeState *state) {
+	NoiseProtocolId id;
+	if (noise_handshakestate_get_protocol_id(state, &id) == NOISE_ERROR_INVALID_PARAM) {
+		//The only error code the implementation emit
+		return 0;
+	}
+	return id.hash_id;
 }

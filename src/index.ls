@@ -66,9 +66,6 @@ else
 			catch e
 				lib._noise_dhstate_free(dh)
 				throw e
-			secret_buffer	= null
-			public_buffer	= null
-			keyType = null;
 			if curve_id == constants.NOISE_DH_CURVE448
 				keyType = "curve448"
 				secret_buffer = allocate(56)
@@ -484,29 +481,23 @@ else
 		 * @return {Uint8Array}
 		 */
 		GetHandshakeHash	: ->
-			pid	= allocate_pointer()	
-			error = lib._noise_handshakestate_get_protocol_id(@_state, pid)
+			hash_buffer = allocate(64)
+			error = lib._noise_handshakestate_get_handshake_hash(@_state, hash_buffer, 64)
 			try
-				assert_no_error(error, @)
+				assert_no_error(error)
+				hs_id = lib._NoiseHandshakeState_get_hash_id(@_state)
+				if hs_id == constants.NOISE_HASH_BLAKE2s || hs_id == constants.NOISE_HASH_SHA256 
+					real_hash = hash_buffer.get().slice(0, 32)
+				else if hs_id == constants.NOISE_HASH_BLAKE2b || hs_id == constants.NOISE_HASH_SHA512
+					real_hash = hash_buffer.get()
+				else
+					throw new Error("invalid hash id:" + hs_id)
+				hash_buffer.free()
+				hash_buffer = null
 			catch e
-				pid.free()
+				hash_buffer.free()
+				hash_buffer = null
 				throw e
-			hash_buffer	= null
-			if lib._NoiseProtocolId_get_hash_id(pid) == constants.NOISE_HASH_BLAKE2b || lib._NoiseProtocolId_get_hash_id(pid) == constants.NOISE_HASH_SHA512
-				hash_buffer = allocate(64)
-				error = lib._noise_handshakestate_get_handshake_hash(@_state, hash_buffer, 64)
-			else
-				hash_buffer = allocate(32)
-				error = lib._noise_handshakestate_get_handshake_hash(@_state, hash_buffer, 32)
-			pid.free()
-			real_hash = null
-			try
-				assert_no_error(error, @)
-				real_hash = hash_buffer.get()
-				hash_buffer.free()
-			catch e
-				hash_buffer.free()
-				throw e	
 			real_hash
 		/**
 		 * GetRemotePublicKey gets raw remote static public key if available.
@@ -515,25 +506,21 @@ else
 		GetRemotePublicKey	: ->
 			if 0 != lib._noise_handshakestate_has_remote_public_key(@_state)	
 				dhs = lib._noise_handshakestate_get_remote_public_key_dh(@_state)
-				key_buffer	= null
-				if lib._noise_dhstate_get_dh_id(dhs) == constants.NOISE_DH_CURVE448
-					key_buffer = allocate(56)
-					error = lib._noise_dhstate_get_public_key(dhs, hash_buffer, 56)
-				else if lib._noise_dhstate_get_dh_id(dhs) == constants.NOISE_DH_CURVE25519
-					key_buffer = allocate(32)
-					error = lib._noise_dhstate_get_public_key(dhs, hash_buffer, 32)
-				else
-					error = constants.NOISE_ERROR_UNKNOWN_ID
-				if key_buffer != null
-					real_key = null
+				key_length = lib._noise_dhstate_get_public_key_length(dhs)
+				if 0 != key_length
+					key_buffer = allocate(key_length)
+					error = lib._noise_dhstate_get_public_key(dhs, key_buffer, key_length)
+					dhs = null	
 					try
-						assert_no_error(error, @)
+						assert_no_error(error)
 						real_key = key_buffer.get()
 						key_buffer.free()
+						key_buffer = null
 					catch e
 						key_buffer.free()
+						key_buffer = null
 						throw e	
-					real_key		
+			real_key		
 		/**
 		 * Call this when object is not needed anymore to avoid memory leaks
 		 */

@@ -231,13 +231,19 @@
                       }
                       function fn$(plaintext){
                         test("HandshakeState: " + protocol_name + ", prologue " + prologue_title + ", psk " + psk_title + ", role_key_s " + role_key_s + ", role_key_rs " + role_key_rs + ", plaintext length " + plaintext.length + ", ad length " + ad.length, function(t){
-                          var initiator_hs, responder_hs, initiator_actions, responder_actions, message, action, initiator_send, initiator_receive, responder_send, responder_receive, ciphertext, plaintext_decrypted;
+                          var initiator_hs, responder_hs, initiator_sp, responder_sp, initiator_actions, responder_actions, message, action, initiator_send, initiator_receive, responder_send, responder_receive, ciphertext, plaintext_decrypted;
                           t.doesNotThrow(function(){
                             initiator_hs = lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_INITIATOR);
                           }, "Initiator constructor doesn't throw an error");
                           t.doesNotThrow(function(){
                             responder_hs = lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER);
                           }, "Responder constructor doesn't throw an error");
+                          if (role_key_s) {
+                            initiator_sp = static_keys[role_key_s]['public'][curve];
+                          }
+                          if (role_key_rs) {
+                            responder_sp = static_keys[role_key_rs]['public'][curve];
+                          }
                           t.doesNotThrow(function(){
                             var s, rs;
                             s = role_key_s;
@@ -292,6 +298,10 @@
                           }
                           t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Initiator is ready to split');
                           t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Responder is ready to split');
+                          t.deepEqual(initiator_hs.GetHandshakeHash(), responder_hs.GetHandshakeHash(), 'Handshake hash must match');
+                          if (pattern === 'IX' || pattern === 'KX' || pattern === 'XX' || pattern === 'NX') {
+                            t.deepEqual(initiator_hs.GetRemotePublicKey(), responder_sp, 'Initiator remote public match');
+                          }
                           t.doesNotThrow(function(){
                             var ref$;
                             ref$ = initiator_hs.Split(), initiator_send = ref$[0], initiator_receive = ref$[1];
@@ -301,6 +311,9 @@
                           t.throws(function(){
                             initiator_hs.Initialize(plaintext);
                           }, Error, "Initiator HandshakeState shouldn't be usable after Split() is called");
+                          if (pattern === 'IN' || pattern === 'IX' || pattern === 'XN' || pattern === 'XX') {
+                            t.deepEqual(responder_hs.GetRemotePublicKey(), initiator_sp, 'Responder remote public match');
+                          }
                           t.doesNotThrow(function(){
                             var ref$;
                             ref$ = responder_hs.Split(), responder_send = ref$[0], responder_receive = ref$[1];

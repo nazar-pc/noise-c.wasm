@@ -68,7 +68,7 @@
     * @return {Object} '{keyType,privateKeypublicKey}'
     */
     function CreateKeyPair(curve_id){
-      var tmp, error, dh, e, secret_buffer, public_buffer, keyType, secret_key, public_key;
+      var tmp, error, dh, e, keyType, secret_buffer, public_buffer, secret_key, public_key;
       if (curve_id === constants.NOISE_DH_CURVE448 || curve_id === constants.NOISE_DH_CURVE25519) {
         tmp = allocate_pointer();
         error = lib._noise_dhstate_new_by_id(tmp, curve_id);
@@ -83,9 +83,6 @@
           lib._noise_dhstate_free(dh);
           throw e;
         }
-        secret_buffer = null;
-        public_buffer = null;
-        keyType = null;
         if (curve_id === constants.NOISE_DH_CURVE448) {
           keyType = "curve448";
           secret_buffer = allocate(56);
@@ -582,29 +579,19 @@
        * @return {Uint8Array}
        */,
       GetHandshakeHash: function(){
-        var pid, error, e, hash_buffer, real_hash;
-        pid = allocate_pointer();
-        error = lib._noise_handshakestate_get_protocol_id(this._state, pid);
+        var hash_buffer, error, hs_id, real_hash, e;
+        hash_buffer = allocate(64);
+        error = lib._noise_handshakestate_get_handshake_hash(this._state, hash_buffer, 64);
         try {
-          assert_no_error(error, this);
-        } catch (e$) {
-          e = e$;
-          pid.free();
-          throw e;
-        }
-        hash_buffer = null;
-        if (lib._NoiseProtocolId_get_hash_id(pid) === constants.NOISE_HASH_BLAKE2b || lib._NoiseProtocolId_get_hash_id(pid) === constants.NOISE_HASH_SHA512) {
-          hash_buffer = allocate(64);
-          error = lib._noise_handshakestate_get_handshake_hash(this._state, hash_buffer, 64);
-        } else {
-          hash_buffer = allocate(32);
-          error = lib._noise_handshakestate_get_handshake_hash(this._state, hash_buffer, 32);
-        }
-        pid.free();
-        real_hash = null;
-        try {
-          assert_no_error(error, this);
-          real_hash = hash_buffer.get();
+          assert_no_error(error);
+          hs_id = lib._NoiseHandshakeState_get_hash_id(this._state);
+          if (hs_id === constants.NOISE_HASH_BLAKE2s || hs_id === constants.NOISE_HASH_SHA256) {
+            real_hash = hash_buffer.get().slice(0, 32);
+          } else if (hs_id === constants.NOISE_HASH_BLAKE2b || hs_id === constants.NOISE_HASH_SHA512) {
+            real_hash = hash_buffer.get();
+          } else {
+            throw new Error("invalid hash id:" + hs_id);
+          }
           hash_buffer.free();
         } catch (e$) {
           e = e$;
@@ -618,23 +605,15 @@
        * @return {null|Uint8Array}
        */,
       GetRemotePublicKey: function(){
-        var dhs, key_buffer, error, real_key, e;
+        var dhs, key_length, key_buffer, error, real_key, e;
         if (0 !== lib._noise_handshakestate_has_remote_public_key(this._state)) {
           dhs = lib._noise_handshakestate_get_remote_public_key_dh(this._state);
-          key_buffer = null;
-          if (lib._noise_dhstate_get_dh_id(dhs) === constants.NOISE_DH_CURVE448) {
-            key_buffer = allocate(56);
-            error = lib._noise_dhstate_get_public_key(dhs, hash_buffer, 56);
-          } else if (lib._noise_dhstate_get_dh_id(dhs) === constants.NOISE_DH_CURVE25519) {
-            key_buffer = allocate(32);
-            error = lib._noise_dhstate_get_public_key(dhs, hash_buffer, 32);
-          } else {
-            error = constants.NOISE_ERROR_UNKNOWN_ID;
-          }
-          if (key_buffer !== null) {
-            real_key = null;
+          key_length = lib._noise_dhstate_get_public_key_length(dhs);
+          if (0 !== key_length) {
+            key_buffer = allocate(key_length);
+            error = lib._noise_dhstate_get_public_key(dhs, key_buffer, key_length);
             try {
-              assert_no_error(error, this);
+              assert_no_error(error);
               real_key = key_buffer.get();
               key_buffer.free();
             } catch (e$) {
@@ -642,9 +621,9 @@
               key_buffer.free();
               throw e;
             }
-            return real_key;
           }
         }
+        return real_key;
       }
       /**
        * Call this when object is not needed anymore to avoid memory leaks
