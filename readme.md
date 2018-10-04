@@ -78,6 +78,8 @@ HandshakeState object [as in specification](http://noiseprotocol.org/noise.html#
 * `FallbackTo(pattern_id = noise.constants.NOISE_PATTERN_XX_FALLBACK)`
 * `WriteMessage(payload = null)`
 * `ReadMessage(message, payload_needed = false, fallback_supported = false)`
+* `GetHandshakeHash()`
+* `GetRemotePublicKey()`
 * `Split()`
 * `free()`
 

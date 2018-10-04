@@ -115,6 +115,11 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 				responder_hs	:= lib.HandshakeState(protocol_name, lib.constants.NOISE_ROLE_RESPONDER)
 			), "Responder constructor doesn't throw an error"
 
+			if role_key_s
+				initiator_sp = static_keys[role_key_s].public[curve]
+			if role_key_rs
+				responder_sp = static_keys[role_key_rs].public[curve]	
+
 			t.doesNotThrow (!->
 				s	= role_key_s
 				if s
@@ -173,6 +178,9 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 			t.equal(initiator_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Initiator is ready to split')
 			t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Responder is ready to split')
 
+			t.deepEqual(initiator_hs.GetHandshakeHash(), responder_hs.GetHandshakeHash(), 'Handshake hash must match')
+			if pattern == 'IX' || pattern == 'KX' || pattern == 'XX' || pattern == 'NX'
+				t.deepEqual(initiator_hs.GetRemotePublicKey(), responder_sp, 'Initiator remote public match')
 			var initiator_send, initiator_receive
 			t.doesNotThrow (!->
 				[initiator_send, initiator_receive]	:= initiator_hs.Split()
@@ -184,6 +192,8 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 				initiator_hs.Initialize(plaintext)
 			), Error, "Initiator HandshakeState shouldn't be usable after Split() is called"
 
+			if pattern == 'IN' || pattern == 'IX' || pattern == 'XN' || pattern == 'XX'
+				t.deepEqual(responder_hs.GetRemotePublicKey(), initiator_sp, 'Responder remote public match')
 			var responder_send, responder_receive
 			t.doesNotThrow (!->
 				[responder_send, responder_receive]	:= responder_hs.Split()
