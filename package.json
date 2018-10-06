@@ -26,6 +26,8 @@
 	],
 	"scripts"         : {
 		"test"   : "tape tests/**/*.js",
+		"test-implementation": "tape tests/*State.js",
+		"test-vector": "tape tests/vectors.js",
 		"vendor" : "git clone https://github.com/rweather/noise-c.git vendor; cd vendor; git checkout 40b64ab83d4ecfdbefcab319a91761507e9fb98c",
 		"build"  : "gulp build"
 	},

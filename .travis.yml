@@ -5,4 +5,7 @@ node_js:
 before_script:
   - npm run vendor
 env:
-  - FAST_HANDSHAKESTATE=1
+  matrix:
+    - FAST_HANDSHAKESTATE=1 TEST_SUITE=test-implementation
+    - TEST_SUITE=test-vector
+script: npm run $TEST_SUITE
