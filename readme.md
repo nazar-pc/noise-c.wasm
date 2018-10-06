@@ -47,6 +47,9 @@ In most cases only `NOISE_ROLE_INITIATOR` and `NOISE_ROLE_RESPONDER` will be use
 
 Check `src/constants.ls` for complete list of available constants.
 
+### noise.CreateKeyPair(curve_id)
+Convenient method for generating new Ed25519 or X448 keypair, takes `noise.constants.NOISE_DH_CURVE448` or `noise.constants.NOISE_DH_CURVE448` as an argument
+
 ### noise.CipherState(cipher)
 CipherState object [as in specification](http://noiseprotocol.org/noise.html#the-cipherstate-object), has following methods:
 * `InitializeKey(key)`

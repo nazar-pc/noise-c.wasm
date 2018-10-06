@@ -179,7 +179,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 			t.equal(responder_hs.GetAction(), lib.constants.NOISE_ACTION_SPLIT, 'Responder is ready to split')
 
 			t.deepEqual(initiator_hs.GetHandshakeHash(), responder_hs.GetHandshakeHash(), 'Handshake hash must match')
-			if pattern == 'IX' || pattern == 'KX' || pattern == 'XX' || pattern == 'NX'
+			if pattern in ['IX', 'KX', 'XX', 'NX']
 				t.deepEqual(initiator_hs.GetRemotePublicKey(), responder_sp, 'Initiator remote public match')
 			var initiator_send, initiator_receive
 			t.doesNotThrow (!->
@@ -192,7 +192,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 				initiator_hs.Initialize(plaintext)
 			), Error, "Initiator HandshakeState shouldn't be usable after Split() is called"
 
-			if pattern == 'IN' || pattern == 'IX' || pattern == 'XN' || pattern == 'XX'
+			if pattern in ['IN', 'IX', 'XN', 'XX']
 				t.deepEqual(responder_hs.GetRemotePublicKey(), initiator_sp, 'Responder remote public match')
 			var responder_send, responder_receive
 			t.doesNotThrow (!->

@@ -3,11 +3,10 @@
  * @author  Nazar Mokrynskyi <nazar@mokrynskyi.com>
  * @license 0BSD
  */
-exec		= require('child_process').exec
-glob		= require('glob')
-gulp		= require('gulp')
-rename		= require('gulp-rename')
-uglify		= require('gulp-uglify')
+exec	= require('child_process').exec
+gulp	= require('gulp')
+rename	= require('gulp-rename')
+uglify	= require('gulp-uglify')
 
 gulp
 	.task('build', ['wasm', 'minify'])
