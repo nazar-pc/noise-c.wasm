@@ -511,7 +511,7 @@ else
 				if key_length
 					key_buffer = allocate(key_length)
 					error = lib._noise_dhstate_get_public_key(dhs, key_buffer, key_length)
-					dhs = null	
+					dhs = null
 					try
 						assert_no_error(error)
 						real_key = key_buffer.get()

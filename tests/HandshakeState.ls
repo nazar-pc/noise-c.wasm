@@ -118,7 +118,7 @@ for let pattern in patterns => for let curve in curves => for let cipher in ciph
 			if role_key_s
 				initiator_sp = static_keys[role_key_s].public[curve]
 			if role_key_rs
-				responder_sp = static_keys[role_key_rs].public[curve]	
+				responder_sp = static_keys[role_key_rs].public[curve]
 
 			t.doesNotThrow (!->
 				s	= role_key_s
