@@ -9,7 +9,6 @@ rename	= require('gulp-rename')
 uglify	= require('gulp-uglify')
 
 gulp
-	.task('build', ['wasm', 'minify'])
 	.task('wasm', (callback) !->
 		files		= [
 			'vendor/src/protocol/cipherstate.c'
@@ -38,7 +37,6 @@ gulp
 			'vendor/src/crypto/newhope/poly.c'
 			'vendor/src/crypto/newhope/precomp.c'
 			'vendor/src/crypto/newhope/reduce.c'
-			'vendor/src/backend/ref/cipher-aesgcm.c'
 			'vendor/src/backend/ref/cipher-aesgcm.c'
 			'vendor/src/backend/ref/cipher-chachapoly.c'
 			'vendor/src/backend/ref/dh-curve25519.c'
@@ -230,6 +228,8 @@ gulp
 			callback(error)
 		)
 	)
+
+gulp
 	.task('minify', ->
 		gulp.src("src/index.js")
 			.pipe(uglify())
@@ -238,3 +238,4 @@ gulp
 			))
 			.pipe(gulp.dest('src'))
 	)
+gulp.task('build', gulp.series(['wasm', 'minify']))

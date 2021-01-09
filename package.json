@@ -1,7 +1,7 @@
 {
-	"name"            : "noise-c.wasm",
-	"description"     : "rweather/noise-c compiled to WebAssembly using Emscripten and optimized for small size",
-	"keywords"        : [
+	"name": "noise-c.wasm",
+	"description": "rweather/noise-c compiled to WebAssembly using Emscripten and optimized for small size",
+	"keywords": [
 		"noise",
 		"noise protocol",
 		"noise-c",
@@ -12,29 +12,29 @@
 		"wasm",
 		"emscripten"
 	],
-	"version"         : "0.4.0",
-	"homepage"        : "https://github.com/nazar-pc/noise-c.wasm",
-	"author"          : "Nazar Mokrynskyi <nazar@mokrynskyi.com>",
-	"repository"      : {
-		"type" : "git",
-		"url"  : "git://github.com/nazar-pc/noise-c.wasm.git"
+	"version": "0.4.0",
+	"homepage": "https://github.com/nazar-pc/noise-c.wasm",
+	"author": "Nazar Mokrynskyi <nazar@mokrynskyi.com>",
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/nazar-pc/noise-c.wasm.git"
 	},
-	"license"         : "0BSD",
-	"main"            : "src/index.js",
-	"files"           : [
+	"license": "0BSD",
+	"main": "src/index.js",
+	"files": [
 		"src"
 	],
-	"scripts"         : {
-		"test"   : "tape tests/**/*.js",
+	"scripts": {
+		"test": "tape tests/**/*.js",
 		"test-implementation": "tape tests/*State.js",
 		"test-vector": "tape tests/vectors.js",
-		"vendor" : "git clone https://github.com/rweather/noise-c.git vendor; cd vendor; git checkout 40b64ab83d4ecfdbefcab319a91761507e9fb98c",
-		"build"  : "gulp build"
+		"vendor": "git clone https://github.com/rweather/noise-c.git vendor; cd vendor; git checkout 40b64ab83d4ecfdbefcab319a91761507e9fb98c",
+		"build": "gulp build"
 	},
-	"devDependencies" : {
-		"gulp"        : "^3.9.1",
-		"gulp-rename" : "^1.2.2",
-		"gulp-uglify" : "^3.0.0",
-		"tape"        : "^4.9.0"
+	"devDependencies": {
+		"gulp": "^4.0.2",
+		"gulp-rename": "^1.2.2",
+		"gulp-uglify": "^3.0.0",
+		"tape": "^4.9.0"
 	}
 }
