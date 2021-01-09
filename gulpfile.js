@@ -10,9 +10,9 @@
   gulp = require('gulp');
   rename = require('gulp-rename');
   uglify = require('gulp-uglify');
-  gulp.task('build', ['wasm', 'minify']).task('wasm', function(callback){
+  gulp.task('wasm', function(callback){
     var files, functions, optimize, clang_opts, command;
-    files = ['vendor/src/protocol/cipherstate.c', 'vendor/src/protocol/dhstate.c', 'vendor/src/protocol/errors.c', 'vendor/src/protocol/handshakestate.c', 'vendor/src/protocol/hashstate.c', 'vendor/src/protocol/internal.c', 'vendor/src/protocol/names.c', 'vendor/src/protocol/patterns.c', 'vendor/src/protocol/randstate.c', 'vendor/src/protocol/signstate.c', 'vendor/src/protocol/symmetricstate.c', 'vendor/src/protocol/util.c', 'vendor/src/backend/ref/dh-curve448.c', 'vendor/src/backend/ref/dh-newhope.c', 'vendor/src/backend/ref/hash-blake2s.c', 'vendor/src/crypto/blake2/blake2s.c', 'vendor/src/crypto/curve448/curve448.c', 'vendor/src/crypto/goldilocks/src/p448/arch_32/p448.c', 'vendor/src/crypto/newhope/batcher.c', 'vendor/src/crypto/newhope/error_correction.c', 'vendor/src/crypto/newhope/fips202.c', 'vendor/src/crypto/newhope/newhope.c', 'vendor/src/crypto/newhope/ntt.c', 'vendor/src/crypto/newhope/poly.c', 'vendor/src/crypto/newhope/precomp.c', 'vendor/src/crypto/newhope/reduce.c', 'vendor/src/backend/ref/cipher-aesgcm.c', 'vendor/src/backend/ref/cipher-aesgcm.c', 'vendor/src/backend/ref/cipher-chachapoly.c', 'vendor/src/backend/ref/dh-curve25519.c', 'vendor/src/backend/ref/hash-blake2b.c', 'vendor/src/backend/ref/hash-sha256.c', 'vendor/src/backend/ref/hash-sha512.c', 'vendor/src/backend/ref/sign-ed25519.c', 'vendor/src/crypto/aes/rijndael-alg-fst.c', 'vendor/src/crypto/blake2/blake2b.c', 'vendor/src/crypto/chacha/chacha.c', 'vendor/src/crypto/donna/poly1305-donna.c', 'vendor/src/crypto/ghash/ghash.c', 'vendor/src/crypto/newhope/crypto_stream_chacha20.c', 'vendor/src/crypto/sha2/sha256.c', 'vendor/src/crypto/sha2/sha512.c', 'vendor/src/crypto/ed25519/ed25519.c'].join(' ');
+    files = ['vendor/src/protocol/cipherstate.c', 'vendor/src/protocol/dhstate.c', 'vendor/src/protocol/errors.c', 'vendor/src/protocol/handshakestate.c', 'vendor/src/protocol/hashstate.c', 'vendor/src/protocol/internal.c', 'vendor/src/protocol/names.c', 'vendor/src/protocol/patterns.c', 'vendor/src/protocol/randstate.c', 'vendor/src/protocol/signstate.c', 'vendor/src/protocol/symmetricstate.c', 'vendor/src/protocol/util.c', 'vendor/src/backend/ref/dh-curve448.c', 'vendor/src/backend/ref/dh-newhope.c', 'vendor/src/backend/ref/hash-blake2s.c', 'vendor/src/crypto/blake2/blake2s.c', 'vendor/src/crypto/curve448/curve448.c', 'vendor/src/crypto/goldilocks/src/p448/arch_32/p448.c', 'vendor/src/crypto/newhope/batcher.c', 'vendor/src/crypto/newhope/error_correction.c', 'vendor/src/crypto/newhope/fips202.c', 'vendor/src/crypto/newhope/newhope.c', 'vendor/src/crypto/newhope/ntt.c', 'vendor/src/crypto/newhope/poly.c', 'vendor/src/crypto/newhope/precomp.c', 'vendor/src/crypto/newhope/reduce.c', 'vendor/src/backend/ref/cipher-aesgcm.c', 'vendor/src/backend/ref/cipher-chachapoly.c', 'vendor/src/backend/ref/dh-curve25519.c', 'vendor/src/backend/ref/hash-blake2b.c', 'vendor/src/backend/ref/hash-sha256.c', 'vendor/src/backend/ref/hash-sha512.c', 'vendor/src/backend/ref/sign-ed25519.c', 'vendor/src/crypto/aes/rijndael-alg-fst.c', 'vendor/src/crypto/blake2/blake2b.c', 'vendor/src/crypto/chacha/chacha.c', 'vendor/src/crypto/donna/poly1305-donna.c', 'vendor/src/crypto/ghash/ghash.c', 'vendor/src/crypto/newhope/crypto_stream_chacha20.c', 'vendor/src/crypto/sha2/sha256.c', 'vendor/src/crypto/sha2/sha512.c', 'vendor/src/crypto/ed25519/ed25519.c'].join(' ');
     /**
      * There are many functions exposed by the library, but only subset of them is used in production, so the rest are still here, uncomment when/if needed
      * for debugging or other purposes
@@ -32,9 +32,11 @@
       }
       callback(error);
     });
-  }).task('minify', function(){
+  });
+  gulp.task('minify', function(){
     return gulp.src("src/index.js").pipe(uglify()).pipe(rename({
       suffix: '.min'
     })).pipe(gulp.dest('src'));
   });
+  gulp.task('build', gulp.series(['wasm', 'minify']));
 }).call(this);
